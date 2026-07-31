@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "com.benbenlaw.abilitylock.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+  ],
+  "client": [
+    "ClientInputAccessor",
+    "KeyboardInputMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+
+}
