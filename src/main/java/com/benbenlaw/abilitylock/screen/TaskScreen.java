@@ -7,8 +7,11 @@ import com.benbenlaw.abilitylock.task.TaskManager;
 import com.benbenlaw.abilitylock.task.TaskRegistry;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 import java.util.*;
 
@@ -24,11 +27,17 @@ public class TaskScreen extends Screen {
     private static final long SCROLL_PAUSE_MS = 800;
     private static final float SCROLL_SPEED_PX_PER_MS = 0.03f;
 
+    private static final double MIN_SCALE = 0.4;
+    private static final double MAX_SCALE = 2.5;
+    private static final double ZOOM_STEP = 0.1;
+
     private final Map<String, Integer> nodeSlot = new HashMap<>();
     private final Map<String, Integer> nodeDepth = new HashMap<>();
     private final Map<String, List<String>> childrenOf = new LinkedHashMap<>();
     private final List<Task> visibleTasks = new ArrayList<>();
     private int leafCounter = 0;
+
+    private static double scale = 1.0;
 
     private double offsetX = 0;
     private double offsetY = 0;
@@ -133,70 +142,122 @@ public class TaskScreen extends Screen {
         for (Task task : visibleTasks) {
             drawNode(graphics, task, data, startX, mouseX, mouseY);
         }
+
+        Task hoveredTask = null;
+        int boxW = (int) Math.round(BOX_WIDTH * scale);
+        int boxH = (int) Math.round(BOX_HEIGHT * scale);
+        for (Task task : visibleTasks) {
+            int[] pos = boxTopLeft(task.id(), startX);
+            if (mouseX >= pos[0] && mouseX <= pos[0] + boxW && mouseY >= pos[1] && mouseY <= pos[1] + boxH) {
+                hoveredTask = task;
+            }
+        }
+
+        if (hoveredTask != null) {
+            List<Component> tooltip = new ArrayList<>();
+            tooltip.add(Component.literal(hoveredTask.displayName()));
+            boolean hoveredUnlocked = TaskManager.isUnlockedForPlayer(hoveredTask.id(), data);
+            boolean hoveredComplete = data.isComplete(hoveredTask.id());
+            tooltip.add(Component.literal(hoveredUnlocked ? (hoveredComplete ? "Complete" : "In Progress") : "Locked"));
+            int hoveredTarget = hoveredTask.criterion().target();
+            if (hoveredTarget > 1) {
+                int hoveredProgress = Math.min(data.progressOf(hoveredTask.id()), hoveredTarget);
+                tooltip.add(Component.literal(hoveredProgress + " / " + hoveredTarget));
+            }
+
+            List<ClientTooltipComponent> tooltipComponents = new ArrayList<>();
+            for (Component line : tooltip) {
+                tooltipComponents.add(ClientTooltipComponent.create(line.getVisualOrderText()));
+            }
+
+            graphics.tooltip(this.font, tooltipComponents, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null);
+        }
     }
 
     private int[] boxTopLeft(String id, int startX) {
         int slot = nodeSlot.get(id);
         int depth = nodeDepth.get(id);
-        int x = startX + slot * (BOX_WIDTH + COL_GAP) + (int) Math.round(offsetX);
-        int y = TOP_MARGIN + depth * (BOX_HEIGHT + ROW_GAP) + (int) Math.round(offsetY);
+        double worldX = startX + slot * (BOX_WIDTH + COL_GAP);
+        double worldY = TOP_MARGIN + depth * (BOX_HEIGHT + ROW_GAP);
+        int x = (int) Math.round(worldX * scale + offsetX);
+        int y = (int) Math.round(worldY * scale + offsetY);
         return new int[]{x, y};
     }
 
     private void drawNode(GuiGraphicsExtractor graphics, Task task, TaskProgressData data, int startX, int mouseX, int mouseY) {
         int[] pos = boxTopLeft(task.id(), startX);
         int x = pos[0], y = pos[1];
+        int boxW = (int) Math.round(BOX_WIDTH * scale);
+        int boxH = (int) Math.round(BOX_HEIGHT * scale);
 
         boolean complete = data.isComplete(task.id());
         boolean unlocked = TaskManager.isUnlockedForPlayer(task.id(), data);
-        boolean hovered = mouseX >= x && mouseX <= x + BOX_WIDTH && mouseY >= y && mouseY <= y + BOX_HEIGHT;
+        boolean hovered = mouseX >= x && mouseX <= x + boxW && mouseY >= y && mouseY <= y + boxH;
 
         int fill;
         int border;
         if (!unlocked) {
-            fill = 0xAA2C2C2A;
-            border = hovered ? 0xFFAAAAAA : 0xFF444441;
+            fill = 0xAA9E3A2C;
+            border = hovered ? 0xFFAAAAAA : 0xFF6E2318;
         } else if (complete) {
             fill = 0xAA1D9E75;
             border = hovered ? 0xFFFFFFFF : 0xFF0F6E56;
         } else {
-            fill = 0xAA444441;
-            border = hovered ? 0xFFFFFFFF : 0xFF888780;
+            fill = 0xAA2A6FB0;
+            border = hovered ? 0xFFFFFFFF : 0xFF1B4F80;
         }
 
-        graphics.fill(x, y, x + BOX_WIDTH, y + BOX_HEIGHT, fill);
-        graphics.fill(x, y, x + BOX_WIDTH, y + 1, border);
-        graphics.fill(x, y + BOX_HEIGHT - 1, x + BOX_WIDTH, y + BOX_HEIGHT, border);
-        graphics.fill(x, y, x + 1, y + BOX_HEIGHT, border);
-        graphics.fill(x + BOX_WIDTH - 1, y, x + BOX_WIDTH, y + BOX_HEIGHT, border);
+        graphics.fill(x, y, x + boxW, y + boxH, fill);
+        graphics.fill(x, y, x + boxW, y + 1, border);
+        graphics.fill(x, y + boxH - 1, x + boxW, y + boxH, border);
+        graphics.fill(x, y, x + 1, y + boxH, border);
+        graphics.fill(x + boxW - 1, y, x + boxW, y + boxH, border);
+
+        int lineHeight = this.font.lineHeight;
 
         if (!unlocked) {
             int textColor = 0xFF666663;
-            drawScrollingText(graphics, Component.nullToEmpty(task.displayName()), x, y, BOX_WIDTH, y + BOX_HEIGHT / 2 - 4, textColor);
+            int textY = y + (boxH - lineHeight) / 2;
+            drawScrollingText(graphics, Component.nullToEmpty(task.displayName()), x, y, boxW, boxH, textY, textColor);
             return;
         }
 
         int textColor = complete ? 0xFFFFFFFF : 0xFFAAAAAA;
-        drawScrollingText(graphics, Component.nullToEmpty(task.displayName()), x, y, BOX_WIDTH, y + BOX_HEIGHT / 2 - 8, textColor);
-
         int target = task.criterion().target();
+
         if (target > 1) {
+            int lineGap = 3;
+            int totalTextHeight = lineHeight * 2 + lineGap;
+            int nameY = y + (boxH - totalTextHeight) / 2;
+            int progressY = nameY + lineHeight + lineGap;
+            int nameOverflow = Math.max(0, y - nameY);
+
+            drawScrollingText(graphics, Component.nullToEmpty(task.displayName()), x, y, boxW, boxH, nameY, textColor, nameOverflow);
+
             int progress = Math.min(data.progressOf(task.id()), target);
             Component progressText = Component.literal(progress + " / " + target);
-            graphics.centeredText(this.font, progressText, x + BOX_WIDTH / 2, y + BOX_HEIGHT / 2 + 4, textColor);
+            graphics.centeredText(this.font, progressText, x + boxW / 2, progressY, textColor);
+        } else {
+            int textY = y + (boxH - lineHeight) / 2;
+            drawScrollingText(graphics, Component.nullToEmpty(task.displayName()), x, y, boxW, boxH, textY, textColor);
         }
     }
 
-    private void drawScrollingText(GuiGraphicsExtractor graphics, Component text, int boxX, int boxY, int boxWidth, int textY, int color) {
+    private void drawScrollingText(GuiGraphicsExtractor graphics, Component text, int boxX, int boxY, int boxWidth, int boxHeight, int textY, int color) {
+        drawScrollingText(graphics, text, boxX, boxY, boxWidth, boxHeight, textY, color, 0);
+    }
+
+    private void drawScrollingText(GuiGraphicsExtractor graphics, Component text, int boxX, int boxY, int boxWidth, int boxHeight, int textY, int color, int topOverflow) {
         int textWidth = this.font.width(text);
         int available = boxWidth - TEXT_PADDING * 2;
 
+        graphics.enableScissor(boxX, boxY - topOverflow, boxX + boxWidth, boxY + boxHeight);
+
         if (textWidth <= available) {
             graphics.centeredText(this.font, text, boxX + boxWidth / 2, textY, color);
+            graphics.disableScissor();
             return;
         }
-
-        graphics.enableScissor(boxX, boxY, boxX + boxWidth, boxY + BOX_HEIGHT);
 
         int maxScroll = textWidth - available;
         long travelTime = (long) (maxScroll / SCROLL_SPEED_PX_PER_MS);
@@ -224,10 +285,12 @@ public class TaskScreen extends Screen {
     private void drawConnector(GuiGraphicsExtractor graphics, String parentId, String childId, int startX) {
         int[] parentPos = boxTopLeft(parentId, startX);
         int[] childPos = boxTopLeft(childId, startX);
+        int boxW = (int) Math.round(BOX_WIDTH * scale);
+        int boxH = (int) Math.round(BOX_HEIGHT * scale);
 
-        int parentCenterX = parentPos[0] + BOX_WIDTH / 2;
-        int parentBottomY = parentPos[1] + BOX_HEIGHT;
-        int childCenterX = childPos[0] + BOX_WIDTH / 2;
+        int parentCenterX = parentPos[0] + boxW / 2;
+        int parentBottomY = parentPos[1] + boxH;
+        int childCenterX = childPos[0] + boxW / 2;
         int childTopY = childPos[1];
         int midY = parentBottomY + (childTopY - parentBottomY) / 2;
         int color = 0xFF73726C;
@@ -271,6 +334,26 @@ public class TaskScreen extends Screen {
             dragging = false;
         }
         return super.mouseReleased(event);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (scrollY == 0) {
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+        }
+
+        double oldScale = scale;
+        double newScale = oldScale + (scrollY > 0 ? ZOOM_STEP : -ZOOM_STEP);
+        newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+
+        if (newScale != oldScale) {
+            double factor = newScale / oldScale;
+            offsetX = mouseX - (mouseX - offsetX) * factor;
+            offsetY = mouseY - (mouseY - offsetY) * factor;
+            scale = newScale;
+        }
+
+        return true;
     }
 
     @Override
