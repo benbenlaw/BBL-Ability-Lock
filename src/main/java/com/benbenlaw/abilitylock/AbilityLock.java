@@ -3,6 +3,7 @@ package com.benbenlaw.abilitylock;
 import com.benbenlaw.abilitylock.ability.Abilities;
 import com.benbenlaw.abilitylock.ability.AbilityRegistry;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
+import com.benbenlaw.abilitylock.config.ClientConfig;
 import com.benbenlaw.abilitylock.network.AbilityLockNetworking;
 import com.benbenlaw.abilitylock.task.TaskRegistry;
 import com.benbenlaw.abilitylock.task.Tasks;
@@ -57,6 +58,9 @@ public class AbilityLock {
         Tasks.init();
         TaskRegistry.validate();
         eventBus.addListener(this::commonSetup);
+
+        modContainer.registerConfig(ModConfig.Type.STARTUP, ClientConfig.SPEC, "bbl/abilitylock/client.toml");
+
 
     }
 

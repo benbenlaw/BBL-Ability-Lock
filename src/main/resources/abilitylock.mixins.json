@@ -6,10 +6,10 @@
   ],
   "client": [
     "ClientInputAccessor",
-    "KeyboardInputMixin"
+    "KeyboardInputMixin",
+    "LocalPlayerAutoJumpMixin"
   ],
   "injectors": {
     "defaultRequire": 1
   }
-
 }

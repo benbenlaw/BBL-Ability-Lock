@@ -1,8 +1,10 @@
 package com.benbenlaw.abilitylock.events.client;
 
 import com.benbenlaw.abilitylock.AbilityLock;
+import com.benbenlaw.abilitylock.config.ClientConfig;
 import com.benbenlaw.abilitylock.util.SpeedrunTimeUtil;
 import net.minecraft.client.Minecraft;
+import net.minecraft.server.level.ServerLevel;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.IOException;
@@ -16,8 +18,8 @@ public class SpeedrunTimer {
 
     private static boolean running = false;
     private static boolean finished = false;
-    private static long startTimeMillis = 0L;
-    private static long endTimeMillis = 0L;
+    private static long accumulatedMillis = 0L;
+    private static Long segmentStartMillis = null;
 
     private static final Path SAVE_FILE =
             FMLPaths.GAMEDIR.get().resolve("config/abilitylock/speedrun_timers.properties");
@@ -29,23 +31,42 @@ public class SpeedrunTimer {
     public static void start() {
         if (!running && !finished) {
             running = true;
-            startTimeMillis = System.currentTimeMillis();
+            accumulatedMillis = 0L;
+            segmentStartMillis = System.currentTimeMillis();
         }
     }
 
     public static void stop() {
         if (running) {
+            settleCurrentSegment();
             running = false;
             finished = true;
-            endTimeMillis = System.currentTimeMillis();
         }
     }
 
     public static void reset() {
         running = false;
         finished = false;
-        startTimeMillis = 0L;
-        endTimeMillis = 0L;
+        accumulatedMillis = 0L;
+        segmentStartMillis = null;
+    }
+
+    public static void tick() {
+        if (!running) return;
+
+        boolean paused = Minecraft.getInstance().isPaused();
+        if (paused) {
+            settleCurrentSegment();
+        } else if (segmentStartMillis == null) {
+            segmentStartMillis = System.currentTimeMillis();
+        }
+    }
+
+    private static void settleCurrentSegment() {
+        if (segmentStartMillis != null) {
+            accumulatedMillis += System.currentTimeMillis() - segmentStartMillis;
+            segmentStartMillis = null;
+        }
     }
 
     public static boolean isRunning() {
@@ -58,21 +79,28 @@ public class SpeedrunTimer {
 
     public static long getElapsedMillis() {
         if (running) {
-            return System.currentTimeMillis() - startTimeMillis;
+            long elapsed = accumulatedMillis;
+            if (segmentStartMillis != null) {
+                elapsed += System.currentTimeMillis() - segmentStartMillis;
+            }
+            return elapsed;
         } else if (finished) {
-            return endTimeMillis - startTimeMillis;
+            return accumulatedMillis;
         }
         return 0L;
     }
 
     public static String getFormattedTime() {
-        return SpeedrunTimeUtil.format(getElapsedMillis());
+        return SpeedrunTimeUtil.format(getElapsedMillis(), ClientConfig.showMillisecondsInTimer.get());
     }
 
     private static String computeWorldKey() {
         Minecraft mc = Minecraft.getInstance();
         if (mc.getSingleplayerServer() != null) {
-            return "sp_" + mc.getSingleplayerServer().getWorldData().getLevelName();
+            String levelName = mc.getSingleplayerServer().getWorldData().getLevelName();
+            ServerLevel overworld = mc.getSingleplayerServer().overworld();
+            long seed = overworld.getSeed();
+            return "sp_" + levelName + "_" + seed;
         } else if (mc.getCurrentServer() != null) {
             return "mp_" + mc.getCurrentServer().ip;
         }
@@ -120,11 +148,12 @@ public class SpeedrunTimer {
 
         if (savedRunning) {
             running = true;
-            startTimeMillis = System.currentTimeMillis() - elapsed;
+            accumulatedMillis = elapsed;
+            segmentStartMillis = System.currentTimeMillis();
         } else if (savedFinished) {
             finished = true;
-            startTimeMillis = 0L;
-            endTimeMillis = elapsed;
+            accumulatedMillis = elapsed;
+            segmentStartMillis = null;
         }
     }
 

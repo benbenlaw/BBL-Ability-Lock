@@ -51,6 +51,8 @@ public class ClientEvents {
         Minecraft mc = Minecraft.getInstance();
         LocalPlayer player = mc.player;
 
+        SpeedrunTimer.tick();
+
         if (player != null && !SpeedrunTimer.isRunning() && !SpeedrunTimer.isFinished()) {
             if (player.input.keyPresses.forward() || player.input.keyPresses.backward() || player.input.keyPresses.left()
                     || player.input.keyPresses.right()) {
