@@ -1,4 +1,4 @@
-package com.benbenlaw.abilitylock.mixin;
+package com.benbenlaw.abilitylock.mixin.client;
 
 import net.minecraft.client.player.ClientInput;
 import net.minecraft.world.entity.player.Input;

@@ -8,6 +8,7 @@ public class ClientConfig {
     public static final ModConfigSpec SPEC;
 
     public static final ModConfigSpec.ConfigValue<Boolean> showMillisecondsInTimer;
+    public static final ModConfigSpec.ConfigValue<Boolean> showAbilityLockWorldCreation;
 
     static {
         BUILDER.comment("BBL Ability Lock Client Config");
@@ -16,6 +17,11 @@ public class ClientConfig {
 
         showMillisecondsInTimer = BUILDER.comment("Show milliseconds in the speedrun timer")
                 .define("showMillisecondsInTimer", true);
+
+        showAbilityLockWorldCreation = BUILDER.comment(
+                        "Show the AbilityLock world creation options - the shortcut button on " +
+                                "Select World, and the AbilityLock tab on Create World.")
+                .define("showAbilityLockWorldCreation", true);
 
         BUILDER.pop();
 

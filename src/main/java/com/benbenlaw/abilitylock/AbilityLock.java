@@ -2,8 +2,10 @@ package com.benbenlaw.abilitylock;
 
 import com.benbenlaw.abilitylock.ability.Abilities;
 import com.benbenlaw.abilitylock.ability.AbilityRegistry;
+import com.benbenlaw.abilitylock.ability.RestrictionsInit;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.config.ClientConfig;
+import com.benbenlaw.abilitylock.config.ServerConfig;
 import com.benbenlaw.abilitylock.network.AbilityLockNetworking;
 import com.benbenlaw.abilitylock.task.TaskRegistry;
 import com.benbenlaw.abilitylock.task.Tasks;
@@ -54,12 +56,13 @@ public class AbilityLock {
     public AbilityLock(final IEventBus eventBus, final ModContainer modContainer) {
         AbilityLockAttachments.ATTACHMENT_TYPES.register(eventBus);
         Abilities.init();
+        RestrictionsInit.init();
         AbilityRegistry.validate();
         Tasks.init();
-        TaskRegistry.validate();
         eventBus.addListener(this::commonSetup);
 
-        modContainer.registerConfig(ModConfig.Type.STARTUP, ClientConfig.SPEC, "bbl/abilitylock/client.toml");
+        modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, "bbl/abilitylock/client.toml");
+        modContainer.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC, "bbl/abilitylock/server.toml");
 
 
     }

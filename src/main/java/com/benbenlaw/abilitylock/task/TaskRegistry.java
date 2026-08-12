@@ -5,8 +5,12 @@ import java.util.*;
 public class TaskRegistry {
     private static final Map<String, Task> TASKS = new LinkedHashMap<>();
 
-    public static Task register(String id, String displayName, String parent, TaskCriterion criterion) {
-        Task task = new Task(id, displayName, parent, criterion);
+    public static Task register(String id, String displayName, TaskCriterion criterion) {
+        return register(id, displayName, criterion, Set.of());
+    }
+
+    public static Task register(String id, String displayName, TaskCriterion criterion, Set<String> requiredAbilities) {
+        Task task = new Task(id, displayName, criterion, requiredAbilities);
         TASKS.put(id, task);
         return task;
     }
@@ -17,14 +21,5 @@ public class TaskRegistry {
 
     public static Optional<Task> get(String id) {
         return Optional.ofNullable(TASKS.get(id));
-    }
-
-    public static void validate() {
-        for (Task task : TASKS.values()) {
-            if (task.hasParent() && !TASKS.containsKey(task.parent())) {
-                throw new IllegalStateException("Task '" + task.id()
-                        + "' declares parent '" + task.parent() + "' which does not exist.");
-            }
-        }
     }
 }

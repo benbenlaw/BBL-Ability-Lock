@@ -40,6 +40,18 @@ public class Abilities {
     public static final Ability NETHER = AbilityRegistry.register("nether", "Nether", "obsidian");
     //public static final Ability END = AbilityRegistry.register("end", "End", null);
 
+    //Combat Locks
+    public static final Ability PASSIVE_KILL = AbilityRegistry.register("passive_kills", "Passive Mobs", "wooden_tools");
+    public static final Ability OVERWORLD_HOSTILE_KILLS = AbilityRegistry.register("overworld_hostile_kills", "Overworld Hostile Kills", "stone_tools");
+
+    //Crafting Locks
+    public static final Ability WOODEN_TOOLS = AbilityRegistry.register("wooden_tools", "Wooden Tools", "crafting");
+    public static final Ability STONE_TOOLS = AbilityRegistry.register("stone_tools", "Stone Tools", "stone");
+    public static final Ability COPPER_TOOLS = AbilityRegistry.register("copper_tools", "Copper Tools", "copper");
+    public static final Ability IRON_TOOLS = AbilityRegistry.register("iron_tools", "Iron Tools", "stone");
+    public static final Ability GOLD_TOOLS = AbilityRegistry.register("gold_tools", "Gold Tools", "copper");
+    public static final Ability DIAMOND_TOOLS = AbilityRegistry.register("diamond_tools", "Diamond Tools", "gold");
+
     //Nether
 
 

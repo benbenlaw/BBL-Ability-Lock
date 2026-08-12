@@ -1,8 +1,10 @@
 package com.benbenlaw.abilitylock.ability;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public class AbilityRegistry {
 
@@ -29,5 +31,15 @@ public class AbilityRegistry {
                         + "' declares parent '" + ability.parent() + "' which does not exist.");
             }
         }
+    }
+
+    public static Set<String> withAncestors(String abilityId) {
+        Set<String> result = new LinkedHashSet<>();
+        String current = abilityId;
+        while (current != null && result.add(current)) {
+            Ability ability = ABILITIES.get(current);
+            current = ability != null ? ability.parent() : null;
+        }
+        return result;
     }
 }

@@ -3,11 +3,13 @@
   "package": "com.benbenlaw.abilitylock.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "CraftingMenuMixin"
   ],
   "client": [
-    "ClientInputAccessor",
     "KeyboardInputMixin",
-    "LocalPlayerAutoJumpMixin"
+    "LocalPlayerAutoJumpMixin",
+    "client.ClientInputAccessor",
+    "client.CreateWorldScreenMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -1,9 +1,11 @@
 package com.benbenlaw.abilitylock.screen;
 
+import com.benbenlaw.abilitylock.ability.Ability;
+import com.benbenlaw.abilitylock.ability.AbilityChecker;
+import com.benbenlaw.abilitylock.ability.AbilityRegistry;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.TaskProgressData;
 import com.benbenlaw.abilitylock.task.Task;
-import com.benbenlaw.abilitylock.task.TaskManager;
 import com.benbenlaw.abilitylock.task.TaskRegistry;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
@@ -11,9 +13,10 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.player.Player;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TaskScreen extends Screen {
 
@@ -31,11 +34,8 @@ public class TaskScreen extends Screen {
     private static final double MAX_SCALE = 2.5;
     private static final double ZOOM_STEP = 0.1;
 
-    private final Map<String, Integer> nodeSlot = new HashMap<>();
-    private final Map<String, Integer> nodeDepth = new HashMap<>();
-    private final Map<String, List<String>> childrenOf = new LinkedHashMap<>();
     private final List<Task> visibleTasks = new ArrayList<>();
-    private int leafCounter = 0;
+    private int gridSize = 1;
 
     private static double scale = 1.0;
 
@@ -58,66 +58,16 @@ public class TaskScreen extends Screen {
     }
 
     private void buildLayout() {
-        nodeSlot.clear();
-        nodeDepth.clear();
-        childrenOf.clear();
         visibleTasks.clear();
-        leafCounter = 0;
 
         if (this.minecraft == null || this.minecraft.player == null) return;
         TaskProgressData data = this.minecraft.player.getData(AbilityLockAttachments.TASK_PROGRESS);
 
-        for (Task task : TaskRegistry.all().values()) {
-            if (!TaskManager.isActiveForPlayer(task.id(), data)) continue;
-            visibleTasks.add(task);
+        for (String taskId : data.gridTaskIds()) {
+            TaskRegistry.get(taskId).ifPresent(visibleTasks::add);
         }
 
-        for (Task task : visibleTasks) {
-            String parentKey;
-            if (!task.hasParent() || TaskRegistry.get(task.parent()).isEmpty() || !isVisible(task.parent())) {
-                parentKey = "__root__";
-            } else {
-                parentKey = task.parent();
-            }
-            childrenOf.computeIfAbsent(parentKey, k -> new ArrayList<>()).add(task.id());
-        }
-
-        for (Task task : visibleTasks) {
-            nodeDepth.put(task.id(), computeDepth(task));
-        }
-
-        for (String root : childrenOf.getOrDefault("__root__", List.of())) {
-            assignSlot(root);
-        }
-    }
-
-    private boolean isVisible(String taskId) {
-        return visibleTasks.stream().anyMatch(t -> t.id().equals(taskId));
-    }
-
-    private int computeDepth(Task task) {
-        int depth = 0;
-        Task current = task;
-        while (current.hasParent() && isVisible(current.parent())) {
-            depth++;
-            current = TaskRegistry.get(current.parent()).orElse(null);
-            if (current == null) break;
-        }
-        return depth;
-    }
-
-    private int assignSlot(String id) {
-        List<String> kids = childrenOf.getOrDefault(id, List.of());
-        int slot;
-        if (kids.isEmpty()) {
-            slot = leafCounter++;
-        } else {
-            int sum = 0;
-            for (String kid : kids) sum += assignSlot(kid);
-            slot = Math.round(sum / (float) kids.size());
-        }
-        nodeSlot.put(id, slot);
-        return slot;
+        gridSize = Math.max(1, (int) Math.ceil(Math.sqrt(Math.max(visibleTasks.size(), 1))));
     }
 
     @Override
@@ -129,40 +79,44 @@ public class TaskScreen extends Screen {
         if (this.minecraft == null || this.minecraft.player == null) return;
         TaskProgressData data = this.minecraft.player.getData(AbilityLockAttachments.TASK_PROGRESS);
 
-        int totalSlots = Math.max(leafCounter, 1);
-        int totalWidth = totalSlots * (BOX_WIDTH + COL_GAP) - COL_GAP;
+        int totalWidth = gridSize * (BOX_WIDTH + COL_GAP) - COL_GAP;
         int startX = (this.width - totalWidth) / 2;
 
-        for (Task task : visibleTasks) {
-            if (task.hasParent() && isVisible(task.parent())) {
-                drawConnector(graphics, task.parent(), task.id(), startX);
-            }
-        }
-
-        for (Task task : visibleTasks) {
-            drawNode(graphics, task, data, startX, mouseX, mouseY);
+        for (int i = 0; i < visibleTasks.size(); i++) {
+            drawNode(graphics, visibleTasks.get(i), i, data, this.minecraft.player, startX, mouseX, mouseY);
         }
 
         Task hoveredTask = null;
         int boxW = (int) Math.round(BOX_WIDTH * scale);
         int boxH = (int) Math.round(BOX_HEIGHT * scale);
-        for (Task task : visibleTasks) {
-            int[] pos = boxTopLeft(task.id(), startX);
+        for (int i = 0; i < visibleTasks.size(); i++) {
+            int[] pos = boxTopLeft(i, startX);
             if (mouseX >= pos[0] && mouseX <= pos[0] + boxW && mouseY >= pos[1] && mouseY <= pos[1] + boxH) {
-                hoveredTask = task;
+                hoveredTask = visibleTasks.get(i);
             }
         }
 
         if (hoveredTask != null) {
             List<Component> tooltip = new ArrayList<>();
             tooltip.add(Component.literal(hoveredTask.displayName()));
-            boolean hoveredUnlocked = TaskManager.isUnlockedForPlayer(hoveredTask.id(), data);
             boolean hoveredComplete = data.isComplete(hoveredTask.id());
-            tooltip.add(Component.literal(hoveredUnlocked ? (hoveredComplete ? "Complete" : "In Progress") : "Locked"));
-            int hoveredTarget = hoveredTask.criterion().target();
-            if (hoveredTarget > 1) {
-                int hoveredProgress = Math.min(data.progressOf(hoveredTask.id()), hoveredTarget);
-                tooltip.add(Component.literal(hoveredProgress + " / " + hoveredTarget));
+            boolean hoveredAttemptable = hoveredComplete || canAttempt(this.minecraft.player, hoveredTask);
+
+            if (!hoveredAttemptable) {
+                tooltip.add(Component.literal("Locked - requires ability:"));
+                for (String abilityId : hoveredTask.requiredAbilities()) {
+                    if (!AbilityChecker.isUnlocked(this.minecraft.player, abilityId)) {
+                        String label = AbilityRegistry.get(abilityId).map(Ability::displayName).orElse(abilityId);
+                        tooltip.add(Component.literal(" - " + label));
+                    }
+                }
+            } else {
+                tooltip.add(Component.literal(hoveredComplete ? "Complete" : "In Progress"));
+                int hoveredTarget = hoveredTask.criterion().target();
+                if (hoveredTarget > 1) {
+                    int hoveredProgress = Math.min(data.progressOf(hoveredTask.id()), hoveredTarget);
+                    tooltip.add(Component.literal(hoveredProgress + " / " + hoveredTarget));
+                }
             }
 
             List<ClientTooltipComponent> tooltipComponents = new ArrayList<>();
@@ -172,31 +126,43 @@ public class TaskScreen extends Screen {
 
             graphics.tooltip(this.font, tooltipComponents, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null);
         }
+
+        if (data.isGridComplete()) {
+            graphics.centeredText(this.font, Component.literal("Speedrun Complete!"), this.width / 2, 26, 0xFF55FF55);
+        }
     }
 
-    private int[] boxTopLeft(String id, int startX) {
-        int slot = nodeSlot.get(id);
-        int depth = nodeDepth.get(id);
-        double worldX = startX + slot * (BOX_WIDTH + COL_GAP);
-        double worldY = TOP_MARGIN + depth * (BOX_HEIGHT + ROW_GAP);
+    private boolean canAttempt(Player player, Task task) {
+        if (!task.hasRequiredAbilities()) return true;
+        for (String abilityId : task.requiredAbilities()) {
+            if (!AbilityChecker.isUnlocked(player, abilityId)) return false;
+        }
+        return true;
+    }
+
+    private int[] boxTopLeft(int index, int startX) {
+        int col = index % gridSize;
+        int row = index / gridSize;
+        double worldX = startX + col * (BOX_WIDTH + COL_GAP);
+        double worldY = TOP_MARGIN + row * (BOX_HEIGHT + ROW_GAP);
         int x = (int) Math.round(worldX * scale + offsetX);
         int y = (int) Math.round(worldY * scale + offsetY);
         return new int[]{x, y};
     }
 
-    private void drawNode(GuiGraphicsExtractor graphics, Task task, TaskProgressData data, int startX, int mouseX, int mouseY) {
-        int[] pos = boxTopLeft(task.id(), startX);
+    private void drawNode(GuiGraphicsExtractor graphics, Task task, int index, TaskProgressData data, Player player, int startX, int mouseX, int mouseY) {
+        int[] pos = boxTopLeft(index, startX);
         int x = pos[0], y = pos[1];
         int boxW = (int) Math.round(BOX_WIDTH * scale);
         int boxH = (int) Math.round(BOX_HEIGHT * scale);
 
         boolean complete = data.isComplete(task.id());
-        boolean unlocked = TaskManager.isUnlockedForPlayer(task.id(), data);
+        boolean attemptable = complete || canAttempt(player, task);
         boolean hovered = mouseX >= x && mouseX <= x + boxW && mouseY >= y && mouseY <= y + boxH;
 
         int fill;
         int border;
-        if (!unlocked) {
+        if (!attemptable) {
             fill = 0xAA9E3A2C;
             border = hovered ? 0xFFAAAAAA : 0xFF6E2318;
         } else if (complete) {
@@ -214,16 +180,14 @@ public class TaskScreen extends Screen {
         graphics.fill(x + boxW - 1, y, x + boxW, y + boxH, border);
 
         int lineHeight = this.font.lineHeight;
+        int textColor = complete ? 0xFFFFFFFF : (attemptable ? 0xFFAAAAAA : 0xFFD8A79E);
+        int target = task.criterion().target();
 
-        if (!unlocked) {
-            int textColor = 0xFF666663;
+        if (!attemptable) {
             int textY = y + (boxH - lineHeight) / 2;
             drawScrollingText(graphics, Component.nullToEmpty(task.displayName()), x, y, boxW, boxH, textY, textColor);
             return;
         }
-
-        int textColor = complete ? 0xFFFFFFFF : 0xFFAAAAAA;
-        int target = task.criterion().target();
 
         if (target > 1) {
             int lineGap = 3;
@@ -280,26 +244,6 @@ public class TaskScreen extends Screen {
         graphics.text(this.font, text, textX, textY, color);
 
         graphics.disableScissor();
-    }
-
-    private void drawConnector(GuiGraphicsExtractor graphics, String parentId, String childId, int startX) {
-        int[] parentPos = boxTopLeft(parentId, startX);
-        int[] childPos = boxTopLeft(childId, startX);
-        int boxW = (int) Math.round(BOX_WIDTH * scale);
-        int boxH = (int) Math.round(BOX_HEIGHT * scale);
-
-        int parentCenterX = parentPos[0] + boxW / 2;
-        int parentBottomY = parentPos[1] + boxH;
-        int childCenterX = childPos[0] + boxW / 2;
-        int childTopY = childPos[1];
-        int midY = parentBottomY + (childTopY - parentBottomY) / 2;
-        int color = 0xFF73726C;
-
-        graphics.fill(parentCenterX, parentBottomY, parentCenterX + 1, midY, color);
-        int lowX = Math.min(parentCenterX, childCenterX);
-        int highX = Math.max(parentCenterX, childCenterX);
-        graphics.fill(lowX, midY, highX + 1, midY + 1, color);
-        graphics.fill(childCenterX, midY, childCenterX + 1, childTopY, color);
     }
 
     @Override

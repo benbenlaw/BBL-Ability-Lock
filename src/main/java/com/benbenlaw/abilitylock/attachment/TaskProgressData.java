@@ -8,7 +8,7 @@ import net.minecraft.network.codec.StreamCodec;
 
 import java.util.*;
 
-public record TaskProgressData(Map<String, Integer> progress, Set<String> completed, Map<String, String> poolChoices) {
+public record TaskProgressData(Map<String, Integer> progress, Set<String> completed, List<String> gridTaskIds) {
 
     public static final Codec<TaskProgressData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.unboundedMap(Codec.STRING, Codec.INT).fieldOf("progress").forGetter(TaskProgressData::progress),
@@ -16,7 +16,7 @@ public record TaskProgressData(Map<String, Integer> progress, Set<String> comple
                     .xmap((List<String> list) -> (Set<String>) new HashSet<>(list), (Set<String> set) -> new ArrayList<>(set))
                     .fieldOf("completed")
                     .forGetter(TaskProgressData::completed),
-            Codec.unboundedMap(Codec.STRING, Codec.STRING).fieldOf("poolChoices").forGetter(TaskProgressData::poolChoices)
+            Codec.STRING.listOf().fieldOf("gridTaskIds").forGetter(TaskProgressData::gridTaskIds)
     ).apply(instance, TaskProgressData::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, TaskProgressData> STREAM_CODEC = StreamCodec.composite(
@@ -24,8 +24,8 @@ public record TaskProgressData(Map<String, Integer> progress, Set<String> comple
             TaskProgressData::progress,
             ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).cast(),
             TaskProgressData::completedList,
-            ByteBufCodecs.map(HashMap::new, ByteBufCodecs.STRING_UTF8, ByteBufCodecs.STRING_UTF8),
-            TaskProgressData::poolChoices,
+            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).cast(),
+            TaskProgressData::gridTaskIds,
             TaskProgressData::fromParts
     );
 
@@ -33,8 +33,8 @@ public record TaskProgressData(Map<String, Integer> progress, Set<String> comple
         return new ArrayList<>(data.completed());
     }
 
-    private static TaskProgressData fromParts(Map<String, Integer> progress, List<String> completedList, Map<String, String> poolChoices) {
-        return new TaskProgressData(new HashMap<>(progress), new HashSet<>(completedList), new HashMap<>(poolChoices));
+    private static TaskProgressData fromParts(Map<String, Integer> progress, List<String> completedList, List<String> gridTaskIds) {
+        return new TaskProgressData(new HashMap<>(progress), new HashSet<>(completedList), new ArrayList<>(gridTaskIds));
     }
 
     public int progressOf(String taskId) {
@@ -45,8 +45,13 @@ public record TaskProgressData(Map<String, Integer> progress, Set<String> comple
         return completed.contains(taskId);
     }
 
-    public Optional<String> poolChoice(String poolId) {
-        return Optional.ofNullable(poolChoices.get(poolId));
+    public boolean isInGrid(String taskId) {
+        return gridTaskIds.contains(taskId);
+    }
+
+    /** True once every task in the grid has been completed - i.e. the speedrun is done. */
+    public boolean isGridComplete() {
+        return !gridTaskIds.isEmpty() && completed.containsAll(gridTaskIds);
     }
 
     public TaskProgressData withProgress(String taskId, int amount, int target) {
@@ -56,7 +61,7 @@ public record TaskProgressData(Map<String, Integer> progress, Set<String> comple
 
         Map<String, Integer> newProgress = new HashMap<>(progress);
         newProgress.put(taskId, updated);
-        return new TaskProgressData(newProgress, completed, poolChoices);
+        return new TaskProgressData(newProgress, completed, gridTaskIds);
     }
 
     public TaskProgressData withProgressSet(String taskId, int value, int target) {
@@ -65,20 +70,17 @@ public record TaskProgressData(Map<String, Integer> progress, Set<String> comple
 
         Map<String, Integer> newProgress = new HashMap<>(progress);
         newProgress.put(taskId, capped);
-        return new TaskProgressData(newProgress, completed, poolChoices);
+        return new TaskProgressData(newProgress, completed, gridTaskIds);
     }
 
     public TaskProgressData withCompleted(String taskId) {
         if (completed.contains(taskId)) return this;
         Set<String> newCompleted = new HashSet<>(completed);
         newCompleted.add(taskId);
-        return new TaskProgressData(progress, newCompleted, poolChoices);
+        return new TaskProgressData(progress, newCompleted, gridTaskIds);
     }
 
-    public TaskProgressData withPoolChoice(String poolId, String taskId) {
-        if (taskId.equals(poolChoices.get(poolId))) return this;
-        Map<String, String> newChoices = new HashMap<>(poolChoices);
-        newChoices.put(poolId, taskId);
-        return new TaskProgressData(progress, completed, newChoices);
+    public TaskProgressData withGridTaskIds(List<String> newGridTaskIds) {
+        return new TaskProgressData(progress, completed, new ArrayList<>(newGridTaskIds));
     }
 }

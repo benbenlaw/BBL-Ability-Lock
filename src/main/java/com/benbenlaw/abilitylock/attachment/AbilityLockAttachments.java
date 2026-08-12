@@ -5,6 +5,7 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Supplier;
@@ -25,7 +26,7 @@ public class AbilityLockAttachments {
 
     public static final Supplier<AttachmentType<TaskProgressData>> TASK_PROGRESS =
             ATTACHMENT_TYPES.register("task_progress", () ->
-                    AttachmentType.builder(() -> new TaskProgressData(new HashMap<>(), new HashSet<>(), new HashMap<>()))
+                    AttachmentType.builder(() -> new TaskProgressData(new HashMap<>(), new HashSet<>(), new ArrayList<>()))
                             .serialize(TaskProgressData.CODEC.fieldOf("task_progress"))
                             .sync(TaskProgressData.STREAM_CODEC)
                             .copyOnDeath()

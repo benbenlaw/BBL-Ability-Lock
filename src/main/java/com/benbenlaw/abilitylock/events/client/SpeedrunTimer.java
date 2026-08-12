@@ -21,8 +21,7 @@ public class SpeedrunTimer {
     private static long accumulatedMillis = 0L;
     private static Long segmentStartMillis = null;
 
-    private static final Path SAVE_FILE =
-            FMLPaths.GAMEDIR.get().resolve("config/abilitylock/speedrun_timers.properties");
+    private static final Path SAVE_FILE = FMLPaths.GAMEDIR.get().resolve("config/bbl/abilitylock/timers.properties");
 
     private static String cachedWorldKey = "unknown";
 
