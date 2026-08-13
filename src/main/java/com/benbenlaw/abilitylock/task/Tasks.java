@@ -7,6 +7,7 @@ import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
 import net.neoforged.neoforge.common.Tags;
 
@@ -42,6 +43,12 @@ public class Tasks {
     public static final Task KILL_CHICKEN = TaskRegistry.register("kill_chicken", "Kill a Chicken",
             new EntitySpecificKillCriterion(EntityType.CHICKEN, 1), Set.of(Abilities.PASSIVE_KILL.id()));
 
+    public static final Task KILL_SQUID = TaskRegistry.register("kill_squid", "Kill a Squid",
+            new EntitySpecificKillCriterion(EntityType.SQUID, 1), Set.of(Abilities.PASSIVE_KILL.id()));
+
+    public static final Task EGG = TaskRegistry.register("egg", "Get an Egg",
+            new ItemStackObtainCriterion(new ItemStackTemplate(Items.EGG), 1));
+
     public static final Task CRAFTING_TABLE = TaskRegistry.register("crafting_table", "Get a Crafting Table",
             new ItemObtainCriterion(Tags.Items.PLAYER_WORKSTATIONS_CRAFTING_TABLES, 1), Set.of(Abilities.LOG.id()));
 
@@ -52,7 +59,16 @@ public class Tasks {
             new ItemObtainCriterion(ItemTags.LOGS, 8), Set.of(Abilities.LOG.id()));
 
     public static final Task BREAK_STONE = TaskRegistry.register("break_stone", "Mine Stone",
-            new BlockBreakCriterion(BlockTags.STONE_ORE_REPLACEABLES, 1), Set.of(Abilities.STONE.id()));
+            new BlockBreakCriterion(Tags.Blocks.STONES, 1), Set.of(Abilities.STONE.id()));
+
+    //public static final Task BREAK_GRANITE = TaskRegistry.register("break_granite", "Mine Granite",
+    //        new BlockBreakCriterion(Tags.Blocks.GRAM, 1), Set.of(Abilities.STONE.id()));
+//
+    //public static final Task BREAK_STONE = TaskRegistry.register("break_stone", "Mine Stone",
+    //        new BlockBreakCriterion(BlockTags.STONE_ORE_REPLACEABLES, 1), Set.of(Abilities.STONE.id()));
+//
+    //public static final Task BREAK_STONE = TaskRegistry.register("break_stone", "Mine Stone",
+    //        new BlockBreakCriterion(BlockTags.STONE_ORE_REPLACEABLES, 1), Set.of(Abilities.STONE.id()));
 
     public static final Task OBTAIN_COBBLESTONE = TaskRegistry.register("obtain_cobblestone", "Get Cobblestone",
             new ItemObtainCriterion(Tags.Items.COBBLESTONES, 8), Set.of(Abilities.STONE.id()));
@@ -75,25 +91,25 @@ public class Tasks {
     public static final Task RAW_GOLD = TaskRegistry.register("raw_gold", "Mine Gold Ore",
             new BlockBreakCriterion(BlockTags.COPPER_ORES, 1), Set.of(Abilities.GOLD.id()));
 
-    public static final Task IRON_INGOT = TaskRegistry.register("iron_ingot", "Iron Ingot",
+    public static final Task IRON_INGOT = TaskRegistry.register("iron_ingot", "Obtain Iron Ingot",
             new ItemObtainCriterion(Tags.Items.INGOTS_IRON, 1), Set.of(Abilities.IRON.id()));
 
-    public static final Task COPPER_INGOT = TaskRegistry.register("copper_ingot", "Copper Ingot",
+    public static final Task COPPER_INGOT = TaskRegistry.register("copper_ingot", "Obtain Copper Ingot",
             new ItemObtainCriterion(Tags.Items.INGOTS_COPPER, 1), Set.of(Abilities.COPPER.id()));
 
-    public static final Task GOLD_INGOT = TaskRegistry.register("gold_ingot", "Gold Ingot",
+    public static final Task GOLD_INGOT = TaskRegistry.register("gold_ingot", "Obtain Gold Ingot",
             new ItemObtainCriterion(Tags.Items.INGOTS_COPPER, 1), Set.of(Abilities.GOLD.id()));
 
-    public static final Task IRON_PICKAXE = TaskRegistry.register("iron_pickaxe", "Get an Iron Pickaxe",
+    public static final Task IRON_PICKAXE = TaskRegistry.register("iron_pickaxe", "Obtain an Iron Pickaxe",
             new ItemStackObtainCriterion(new ItemStackTemplate(Items.IRON_PICKAXE), 1), Set.of(Abilities.IRON.id()));
 
-    public static final Task IRON_SWORD = TaskRegistry.register("iron_sword", "Get an Iron Sword",
-            new ItemStackObtainCriterion(new ItemStackTemplate(Items.IRON_SWORD), 1), Set.of(Abilities.IRON.id()));
-
-    public static final Task IRON_ARMOR = TaskRegistry.register("iron_armor", "Get a Piece of Iron Armor",
-            new ItemObtainCriterion(ItemTags.TRIMMABLE_ARMOR, 1), Set.of(Abilities.IRON.id()));
-
     public static final Task DIAMOND = TaskRegistry.register("diamond", "Get a Diamond",
+            new ItemObtainCriterion(Tags.Items.GEMS_DIAMOND, 1), Set.of(Abilities.IRON_TOOLS.id()));
+
+    public static final Task REDSTONE = TaskRegistry.register("redstone", "Get a Redstone",
+            new ItemObtainCriterion(Tags.Items.GEMS_DIAMOND, 1), Set.of(Abilities.IRON_TOOLS.id()));
+
+    public static final Task LAPIS = TaskRegistry.register("lapis", "Get a Lapis Lazuli",
             new ItemObtainCriterion(Tags.Items.GEMS_DIAMOND, 1), Set.of(Abilities.IRON_TOOLS.id()));
 
     public static final Task DIAMOND_PICKAXE = TaskRegistry.register("diamond_pickaxe", "Get a Diamond Pickaxe",
@@ -101,6 +117,9 @@ public class Tasks {
 
     public static final Task OBSIDIAN = TaskRegistry.register("obsidian", "Get Obsidian",
             new ItemObtainCriterion(Tags.Items.OBSIDIANS, 1), Set.of(Abilities.DIAMOND_TOOLS.id()));
+
+    public static final Task ENCHANTING_TABLE = TaskRegistry.register("enchanting_table", "Obtain a Enchanting Table",
+            new ItemStackObtainCriterion(new ItemStackTemplate(Items.DIAMOND_PICKAXE), 1), Set.of(Abilities.DIAMOND.id(), Abilities.OBSIDIAN.id()));
 
     public static final Task NETHERRACK = TaskRegistry.register("netherrack", "Get Netherrack",
             new ItemStackObtainCriterion(new ItemStackTemplate(Items.NETHERRACK), 8), Set.of(Abilities.NETHERRACK.id()));
@@ -120,20 +139,20 @@ public class Tasks {
     public static final Task WHEAT_SEEDS = TaskRegistry.register("wheat_seeds", "Get Wheat Seeds",
             new ItemStackObtainCriterion(new ItemStackTemplate(Items.WHEAT_SEEDS), 8));
 
-    public static final Task PUMPKIN = TaskRegistry.register("pumpkin", "Get a Pumpkin Slice",
+    public static final Task PUMPKIN = TaskRegistry.register("pumpkin", "Get a Pumpkin",
             new ItemStackObtainCriterion(new ItemStackTemplate(Items.PUMPKIN), 1));
 
     public static final Task SUGAR_CANE = TaskRegistry.register("sugar_cane", "Get Sugar Canes",
             new ItemStackObtainCriterion(new ItemStackTemplate(Items.SUGAR_CANE), 8));
 
-    public static final Task VILLAGE = TaskRegistry.register("village", "Find a Village",
-            new StructureLocateCriterion(List.of(
-                    BuiltinStructures.VILLAGE_PLAINS,
-                    BuiltinStructures.VILLAGE_DESERT,
-                    BuiltinStructures.VILLAGE_SAVANNA,
-                    BuiltinStructures.VILLAGE_TAIGA,
-                    BuiltinStructures.VILLAGE_SNOWY
-            ), 1));
+    //public static final Task VILLAGE = TaskRegistry.register("village", "Find a Village",
+    //        new StructureLocateCriterion(List.of(
+    //                BuiltinStructures.VILLAGE_PLAINS,
+    //                BuiltinStructures.VILLAGE_DESERT,
+    //                BuiltinStructures.VILLAGE_SAVANNA,
+    //                BuiltinStructures.VILLAGE_TAIGA,
+    //                BuiltinStructures.VILLAGE_SNOWY
+    //        ), 1));
 
     public static final Task KILL_ZOMBIE = TaskRegistry.register("kill_zombie", "Kill a Zombie",
             new EntitySpecificKillCriterion(EntityType.ZOMBIE, 1), Set.of(Abilities.OVERWORLD_HOSTILE_KILLS.id()));
@@ -144,17 +163,17 @@ public class Tasks {
     public static final Task KILL_SPIDER = TaskRegistry.register("kill_spider", "Kill a Spider",
             new EntitySpecificKillCriterion(EntityType.SPIDER, 1), Set.of(Abilities.OVERWORLD_HOSTILE_KILLS.id()));
 
-    public static final Task KILL_CREEPER = TaskRegistry.register("kill_spider", "Kill a Spider",
+    public static final Task KILL_CREEPER = TaskRegistry.register("kill_creeper", "Kill a Creeper",
             new EntitySpecificKillCriterion(EntityType.CREEPER, 1), Set.of(Abilities.OVERWORLD_HOSTILE_KILLS.id()));
 
-    public static final Task KILL_ENDER_DRAGON = TaskRegistry.register("kill_ender_dragon", "Kill The Ender Dragon",
-            new EntitySpecificKillCriterion(EntityType.ENDER_DRAGON, 1), Set.of(Abilities.ENCHANTING.id()));
-
-    public static final Task KILL_WITHER = TaskRegistry.register("kill_wither", "Kill The Wither",
-            new EntitySpecificKillCriterion(EntityType.WITHER, 1), Set.of(Abilities.ENCHANTING.id()));
-
-    public static final Task KILL_WARDEN = TaskRegistry.register("kill_warden", "Kill The Warden",
-            new EntitySpecificKillCriterion(EntityType.WARDEN, 1), Set.of(Abilities.ENCHANTING.id()));
+    //public static final Task KILL_ENDER_DRAGON = TaskRegistry.register("kill_ender_dragon", "Kill The Ender Dragon",
+    //        new EntitySpecificKillCriterion(EntityType.ENDER_DRAGON, 1), Set.of(Abilities.ENCHANTING.id()));
+//
+    //public static final Task KILL_WITHER = TaskRegistry.register("kill_wither", "Kill The Wither",
+    //        new EntitySpecificKillCriterion(EntityType.WITHER, 1), Set.of(Abilities.ENCHANTING.id()));
+//
+    //public static final Task KILL_WARDEN = TaskRegistry.register("kill_warden", "Kill The Warden",
+    //        new EntitySpecificKillCriterion(EntityType.WARDEN, 1), Set.of(Abilities.ENCHANTING.id()));
 
     public static void init() {
     }

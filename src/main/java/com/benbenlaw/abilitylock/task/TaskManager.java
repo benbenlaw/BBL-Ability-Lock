@@ -88,7 +88,6 @@ public class TaskManager {
         }
     }
 
-    /** Defensive check - the actual gating normally happens at the gameplay level (e.g. block-break mixins). */
     private static boolean canAttempt(ServerPlayer player, Task task) {
         if (!task.hasRequiredAbilities()) return true;
         for (String abilityId : task.requiredAbilities()) {
@@ -97,26 +96,6 @@ public class TaskManager {
         return true;
     }
 
-    /**
-     * Builds and assigns the player's grid on first login. No-op if a grid
-     * is already assigned. Unlike a pure random sample, this constructs the
-     * grid in two phases:
-     *
-     *  1. ~25% of the grid is filled from tasks already completable with
-     *     ONLY the starting abilities - so there's always immediate stuff
-     *     to do.
-     *  2. The rest is filled preferring tasks that are NOT yet reachable
-     *     with the starting abilities (i.e. actually gated), only falling
-     *     back to more unrestricted tasks if nothing gated is currently
-     *     reachable. Each pick simulates the one ability grant that
-     *     completing it would eventually trigger, using the exact same
-     *     demand-aware policy AbilityChecker.grantRandomEligible uses for
-     *     real - so this isn't just a best-case simulation. As long as
-     *     construction finishes with a full grid, completing whatever's
-     *     currently attemptable (in any order) will always finish it, since
-     *     a demand-aware grant can never stall while the grid still needs
-     *     something.
-     */
     public static void ensureGridAssigned(ServerPlayer player, int gridSize, Set<String> startingAbilities) {
         TaskProgressData data = player.getData(AbilityLockAttachments.TASK_PROGRESS);
         if (!data.gridTaskIds().isEmpty()) return;
@@ -135,8 +114,6 @@ public class TaskManager {
         List<Task> allTasks = new ArrayList<>(TaskRegistry.all().values());
         Collections.shuffle(allTasks, rng);
 
-        // Split by reachability using ONLY the starting abilities - this
-        // split is fixed up front and doesn't change as unlocked grows.
         List<Task> immediatePool = new ArrayList<>();
         List<Task> gatedPool = new ArrayList<>();
         for (Task task : allTasks) {
@@ -151,7 +128,6 @@ public class TaskManager {
         int immediatePercent = ServerConfig.immediateTaskPercentage.get();
         int immediateTarget = Math.max(0, Math.min(targetCount, Math.round(targetCount * (immediatePercent / 100f))));
 
-        // Phase 1: guaranteed "available straight away" slice.
         Iterator<Task> immediateIter = immediatePool.iterator();
         while (selected.size() < immediateTarget && immediateIter.hasNext()) {
             Task task = immediateIter.next();
@@ -160,13 +136,10 @@ public class TaskManager {
             simulateAbilityGrant(unlocked, gatedPool, immediatePool, rng);
         }
 
-        // Phase 2: fill the rest, preferring gated tasks as they become
-        // reachable; fall back to remaining immediate tasks if nothing
-        // gated is currently reachable, so we don't stall early.
         while (selected.size() < targetCount) {
             Task next = pickReachable(gatedPool, unlocked);
             if (next == null) next = pickReachable(immediatePool, unlocked);
-            if (next == null) break; // nothing left is currently reachable - stop with a smaller grid rather than stall forever
+            if (next == null) break;
 
             gatedPool.remove(next);
             immediatePool.remove(next);
@@ -186,7 +159,6 @@ public class TaskManager {
         return null;
     }
 
-    /** Mirrors AbilityChecker.grantRandomEligible's demand-aware policy, against a hypothetical unlocked set instead of live player data. */
     private static void simulateAbilityGrant(Set<String> unlocked, List<Task> pendingA, List<Task> pendingB, Random rng) {
         List<Ability> eligible = new ArrayList<>();
         for (Ability ability : AbilityRegistry.all().values()) {
