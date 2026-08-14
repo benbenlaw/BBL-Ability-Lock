@@ -1,0 +1,7 @@
+{
+  "type": "abilitylock:movement_ability",
+  "display_name": "Forward",
+  "targets": [
+    "forward"
+  ]
+}

@@ -1,6 +1,5 @@
 package com.benbenlaw.abilitylock.task;
 
-import com.benbenlaw.abilitylock.ability.old.Abilities;
 import com.benbenlaw.abilitylock.task.criteria.*;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
@@ -13,6 +12,7 @@ import java.util.Set;
 
 public class Tasks {
 
+    /*
     public static final Task DIRT = TaskRegistry.register("dirt", "Get Dirt",
             new ItemObtainCriterion(ItemTags.DIRT, 8));
 
@@ -171,6 +171,8 @@ public class Tasks {
 //
     //public static final Task KILL_WARDEN = TaskRegistry.register("kill_warden", "Kill The Warden",
     //        new EntitySpecificKillCriterion(EntityType.WARDEN, 1), Set.of(Abilities.ENCHANTING.id()));
+
+     */
 
     public static void init() {
     }

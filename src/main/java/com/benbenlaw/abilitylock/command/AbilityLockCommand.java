@@ -1,8 +1,8 @@
 package com.benbenlaw.abilitylock.command;
 
-import com.benbenlaw.abilitylock.ability.old.Ability;
-import com.benbenlaw.abilitylock.ability.old.AbilityChecker;
-import com.benbenlaw.abilitylock.ability.old.AbilityRegistry;
+import com.benbenlaw.abilitylock.ability.AbilityChecker;
+import com.benbenlaw.abilitylock.ability.AbilityData;
+import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.network.packet.SyncAbilityLockPacket;
@@ -17,19 +17,18 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.jspecify.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class AbilityLockCommand {
 
     private static final SuggestionProvider<CommandSourceStack> ABILITY_SUGGESTIONS = (ctx, builder) ->
-            SharedSuggestionProvider.suggest(AbilityRegistry.all().keySet(), builder);
+            SharedSuggestionProvider.suggest(
+                    AbilityLoader.DATA.keySet().stream().map(Identifier::toString).toList(), builder);
 
     private static final SuggestionProvider<CommandSourceStack> TASK_SUGGESTIONS = (ctx, builder) ->
             SharedSuggestionProvider.suggest(TaskRegistry.all().keySet(), builder);
@@ -37,32 +36,40 @@ public class AbilityLockCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
                 Commands.literal("abilitylock")
-                        .then(Commands.literal("unlock")
-                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-                                .executes(AbilityLockCommand::unlockRandom)
-                                .then(Commands.argument("ability", StringArgumentType.word())
-                                        .suggests(ABILITY_SUGGESTIONS)
-                                        .executes(AbilityLockCommand::unlockSelf)
-                                        .then(Commands.argument("target", StringArgumentType.word())
-                                                .executes(AbilityLockCommand::unlockOther)
-                                        )
-                                )
-                        )
-                        .then(Commands.literal("lock")
-                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-                                .then(Commands.argument("ability", StringArgumentType.word())
-                                        .suggests(ABILITY_SUGGESTIONS)
-                                        .executes(AbilityLockCommand::lockSelf)
-                                        .then(Commands.argument("target", StringArgumentType.word())
-                                                .executes(AbilityLockCommand::lockOther)
-                                        )
-                                )
-                        )
-                        .then(Commands.literal("list")
-                                .executes(AbilityLockCommand::listSelf)
-                                .then(Commands.argument("target", StringArgumentType.word())
+                        .then(Commands.literal("ability")
+                                .then(Commands.literal("unlock")
                                         .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
-                                        .executes(AbilityLockCommand::listOther)
+                                        .executes(AbilityLockCommand::unlockRandom)
+                                        .then(Commands.argument("ability", StringArgumentType.greedyString())
+                                                .suggests(ABILITY_SUGGESTIONS)
+                                                .executes(AbilityLockCommand::unlockSelf)
+                                        )
+                                        .then(Commands.argument("target", StringArgumentType.word())
+                                                .then(Commands.argument("ability", StringArgumentType.greedyString())
+                                                        .suggests(ABILITY_SUGGESTIONS)
+                                                        .executes(AbilityLockCommand::unlockOther)
+                                                )
+                                        )
+                                )
+                                .then(Commands.literal("lock")
+                                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                        .then(Commands.argument("ability", StringArgumentType.greedyString())
+                                                .suggests(ABILITY_SUGGESTIONS)
+                                                .executes(AbilityLockCommand::lockSelf)
+                                        )
+                                        .then(Commands.argument("target", StringArgumentType.word())
+                                                .then(Commands.argument("ability", StringArgumentType.greedyString())
+                                                        .suggests(ABILITY_SUGGESTIONS)
+                                                        .executes(AbilityLockCommand::lockOther)
+                                                )
+                                        )
+                                )
+                                .then(Commands.literal("list")
+                                        .executes(AbilityLockCommand::listSelf)
+                                        .then(Commands.argument("target", StringArgumentType.word())
+                                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                                .executes(AbilityLockCommand::listOther)
+                                        )
                                 )
                         )
                         .then(Commands.literal("task")
@@ -95,14 +102,25 @@ public class AbilityLockCommand {
         );
     }
 
+    private static @Nullable Identifier getAbilityId(CommandContext<CommandSourceStack> ctx) {
+        String raw = StringArgumentType.getString(ctx, "ability");
+        try {
+            return Identifier.parse(raw);
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Invalid ability id: " + raw));
+            return null;
+        }
+    }
+
     public static int unlockRandom(CommandContext<CommandSourceStack> ctx) {
         ServerPlayer player = getSelfOrFail(ctx);
         if (player == null) return 0;
 
         return AbilityChecker.grantRandomEligible(player)
-                .map(a -> {
+                .map(id -> {
+                    String name = displayNameOf(id);
                     ctx.getSource().sendSuccess(() -> Component.literal(
-                            "Unlocked '" + a.displayName() + "' for " + player.getName().getString()), true);
+                            "Unlocked '" + name + "' for " + player.getName().getString()), true);
                     return 1;
                 })
                 .orElseGet(() -> {
@@ -145,51 +163,51 @@ public class AbilityLockCommand {
     }
 
     private static int resolveAndLock(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
-        String abilityId = StringArgumentType.getString(ctx, "ability");
+        Identifier abilityId = getAbilityId(ctx);
+        if (abilityId == null) return 0;
 
-        Optional<Ability> abilityOpt = AbilityRegistry.get(abilityId);
-        if (abilityOpt.isEmpty()) {
+        AbilityData abilityData = AbilityLoader.DATA.get(abilityId);
+        if (abilityData == null) {
             ctx.getSource().sendFailure(Component.literal("Unknown ability: " + abilityId));
             return 0;
         }
 
-        Ability ability = abilityOpt.get();
         AbilityLockData data = player.getData(AbilityLockAttachments.ABILITY_LOCK);
 
-        if (!data.has(ability.id())) {
+        if (!data.has(abilityId)) {
             ctx.getSource().sendSuccess(() -> Component.literal(
-                    player.getName().getString() + " doesn't have '" + ability.id() + "' unlocked."), false);
+                    player.getName().getString() + " doesn't have '" + abilityId + "' unlocked."), false);
             return 1;
         }
 
-        return applyLock(ctx, player, ability);
+        return applyLock(ctx, player, abilityId, abilityData);
     }
 
-    private static int applyLock(CommandContext<CommandSourceStack> ctx, ServerPlayer player, Ability ability) {
+    private static int applyLock(CommandContext<CommandSourceStack> ctx, ServerPlayer player, Identifier abilityId, AbilityData abilityData) {
         AbilityLockData data = player.getData(AbilityLockAttachments.ABILITY_LOCK);
-        Set<String> updated = new HashSet<>(data.unlockedAbilities());
-        Set<String> removed = new HashSet<>();
-        removeCascade(ability.id(), updated, removed);
+        Set<Identifier> updated = new HashSet<>(data.unlockedAbilities());
+        Set<Identifier> removed = new HashSet<>();
+        removeCascade(abilityId, updated, removed);
 
-        AbilityLockData newData = new AbilityLockData(updated);
+        AbilityLockData newData = new AbilityLockData(updated, data.presetId(), data.eliminated());
         player.setData(AbilityLockAttachments.ABILITY_LOCK, newData);
 
         PacketDistributor.sendToPlayer(player, new SyncAbilityLockPacket(newData));
 
         ctx.getSource().sendSuccess(() -> Component.literal(
-                "Locked '" + ability.displayName() + "'" +
+                "Locked '" + abilityData.displayName() + "'" +
                         (removed.size() > 1 ? " and " + (removed.size() - 1) + " dependent ability(ies)" : "") +
                         " for " + player.getName().getString()), true);
         return 1;
     }
 
-    private static void removeCascade(String id, Set<String> unlocked, Set<String> removed) {
+    private static void removeCascade(Identifier id, Set<Identifier> unlocked, Set<Identifier> removed) {
         if (!unlocked.remove(id)) return;
         removed.add(id);
 
-        for (Ability ability : AbilityRegistry.all().values()) {
-            if (id.equals(ability.parent())) {
-                removeCascade(ability.id(), unlocked, removed);
+        for (Map.Entry<Identifier, AbilityData> entry : AbilityLoader.DATA.entrySet()) {
+            if (entry.getValue().parents().contains(id)) {
+                removeCascade(entry.getKey(), unlocked, removed);
             }
         }
     }
@@ -204,58 +222,35 @@ public class AbilityLockCommand {
     }
 
     private static int resolveAndUnlock(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
-        String abilityId = StringArgumentType.getString(ctx, "ability");
+        Identifier abilityId = getAbilityId(ctx);
+        if (abilityId == null) return 0;
 
-        Optional<Ability> abilityOpt = AbilityRegistry.get(abilityId);
-        if (abilityOpt.isEmpty()) {
+        AbilityData abilityData = AbilityLoader.DATA.get(abilityId);
+        if (abilityData == null) {
             ctx.getSource().sendFailure(Component.literal("Unknown ability: " + abilityId));
             return 0;
         }
 
-        Ability ability = abilityOpt.get();
         AbilityLockData data = player.getData(AbilityLockAttachments.ABILITY_LOCK);
 
-        if (data.has(ability.id())) {
+        if (data.has(abilityId)) {
             ctx.getSource().sendSuccess(() -> Component.literal(
-                    player.getName().getString() + " already has '" + ability.id() + "' unlocked."), false);
+                    player.getName().getString() + " already has '" + abilityId + "' unlocked."), false);
             return 1;
         }
 
-        if (ability.hasParent() && !AbilityChecker.isUnlocked(player, ability.parent())) {
-            ctx.getSource().sendFailure(Component.literal(
-                    "Cannot unlock '" + ability.id() + "' - prerequisite '" + ability.parent() + "' is not unlocked yet."));
-            return 0;
+        for (Identifier parent : abilityData.parents()) {
+            if (!AbilityChecker.isUnlocked(player, parent)) {
+                ctx.getSource().sendFailure(Component.literal(
+                        "Cannot unlock '" + abilityId + "' - prerequisite '" + parent + "' is not unlocked yet."));
+                return 0;
+            }
         }
 
-        AbilityChecker.grantSpecific(player, ability);
+        AbilityChecker.grantSpecific(player, abilityId);
         ctx.getSource().sendSuccess(() -> Component.literal(
-                "Unlocked '" + ability.displayName() + "' for " + player.getName().getString()), true);
+                "Unlocked '" + abilityData.displayName() + "' for " + player.getName().getString()), true);
         return 1;
-    }
-
-    private static int applyUnlock(CommandContext<CommandSourceStack> ctx, ServerPlayer player, Ability ability) {
-        AbilityLockData data = player.getData(AbilityLockAttachments.ABILITY_LOCK);
-
-        Set<String> updated = new HashSet<>(data.unlockedAbilities());
-        updated.add(ability.id());
-        AbilityLockData newData = new AbilityLockData(updated);
-        player.setData(AbilityLockAttachments.ABILITY_LOCK, newData);
-
-        PacketDistributor.sendToPlayer(player, new SyncAbilityLockPacket(newData));
-
-        ctx.getSource().sendSuccess(() -> Component.literal(
-                "Unlocked '" + ability.displayName() + "' for " + player.getName().getString()), true);
-        return 1;
-    }
-
-    public static List<Ability> getEligibleAbilities(AbilityLockData data) {
-        List<Ability> eligible = new ArrayList<>();
-        for (Ability ability : AbilityRegistry.all().values()) {
-            if (data.has(ability.id())) continue;
-            if (ability.hasParent() && !data.has(ability.parent())) continue;
-            eligible.add(ability);
-        }
-        return eligible;
     }
 
     private static int listSelf(CommandContext<CommandSourceStack> ctx) {
@@ -276,7 +271,7 @@ public class AbilityLockCommand {
 
     private static int doList(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
         AbilityLockData data = player.getData(AbilityLockAttachments.ABILITY_LOCK);
-        Set<String> unlocked = data.unlockedAbilities();
+        Set<Identifier> unlocked = data.unlockedAbilities();
 
         if (unlocked.isEmpty()) {
             ctx.getSource().sendSuccess(() -> Component.literal(
@@ -285,13 +280,21 @@ public class AbilityLockCommand {
         }
 
         ctx.getSource().sendSuccess(() -> Component.literal(
-                player.getName().getString() + " has unlocked (" + unlocked.size() + "/" + AbilityRegistry.all().size() + "):"), false);
+                player.getName().getString() + " has unlocked (" + unlocked.size() + "/" + AbilityLoader.DATA.size() + "):"), false);
 
-        AbilityRegistry.all().values().stream()
-                .filter(a -> unlocked.contains(a.id()))
-                .forEach(a -> ctx.getSource().sendSuccess(() -> Component.literal(" - " + a.displayName()), false));
+        unlocked.stream()
+                .sorted(Comparator.comparing(Identifier::toString))
+                .forEach(id -> {
+                    String name = displayNameOf(id);
+                    ctx.getSource().sendSuccess(() -> Component.literal(" - " + name), false);
+                });
 
         return 1;
+    }
+
+    private static String displayNameOf(Identifier id) {
+        AbilityData data = AbilityLoader.DATA.get(id);
+        return data != null ? data.displayName() : id.toString();
     }
 
     private static int completeTaskSelf(CommandContext<CommandSourceStack> ctx) {

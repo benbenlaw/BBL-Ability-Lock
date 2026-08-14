@@ -49,7 +49,6 @@ public record TaskProgressData(Map<String, Integer> progress, Set<String> comple
         return gridTaskIds.contains(taskId);
     }
 
-    /** True once every task in the grid has been completed - i.e. the speedrun is done. */
     public boolean isGridComplete() {
         return !gridTaskIds.isEmpty() && completed.containsAll(gridTaskIds);
     }

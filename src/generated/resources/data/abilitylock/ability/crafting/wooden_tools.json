@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:crafting_ability",
+  "display_name": "Wooden Tools",
+  "parents": [
+    "abilitylock:interactions/crafting_table"
+  ],
+  "targets": [
+    "minecraft:wooden_pickaxe",
+    "minecraft:wooden_axe",
+    "minecraft:wooden_shovel",
+    "minecraft:wooden_hoe",
+    "minecraft:wooden_sword"
+  ]
+}

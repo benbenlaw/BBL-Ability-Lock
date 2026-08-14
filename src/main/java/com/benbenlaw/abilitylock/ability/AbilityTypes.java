@@ -1,10 +1,7 @@
 package com.benbenlaw.abilitylock.ability;
 
 import com.benbenlaw.abilitylock.AbilityLock;
-import com.benbenlaw.abilitylock.ability.abilities.BlockBreak;
-import com.benbenlaw.abilitylock.ability.abilities.BlockInteract;
-import com.benbenlaw.abilitylock.ability.abilities.DimensionTravel;
-import com.benbenlaw.abilitylock.ability.abilities.EntityHurt;
+import com.benbenlaw.abilitylock.ability.abilities.*;
 import net.minecraft.resources.Identifier;
 
 import java.util.HashMap;
@@ -14,13 +11,13 @@ import java.util.function.Supplier;
 
 public class AbilityTypes {
 
-    public static final Identifier BLOCK_BREAK = AbilityLock.identifier("block_break");
-    public static final Identifier DIMENSION_TRAVEL = AbilityLock.identifier("dimension_travel");
-    public static final Identifier BLOCK_INTERACT = AbilityLock.identifier("block_interact");
-    public static final Identifier ENTITY_HURT = AbilityLock.identifier("entity_hurt");
-
-    // public static final Identifier ENTITY_DAMAGE = AbilityLock.identifier("entity_damage"); // TODO
-    // public static final Identifier CRAFTING = AbilityLock.identifier("crafting"); // TODO
+    public static final Identifier BLOCK_BREAK = AbilityLock.identifier("block_break_ability");
+    public static final Identifier DIMENSION_TRAVEL = AbilityLock.identifier("dimension_travel_ability");
+    public static final Identifier BLOCK_INTERACT = AbilityLock.identifier("block_interact_ability");
+    public static final Identifier ENTITY_HURT = AbilityLock.identifier("entity_hurt_ability");
+    public static final Identifier CRAFTING_ABILITY = AbilityLock.identifier("crafting_ability");
+    public static final Identifier MOVEMENT_ABILITY = AbilityLock.identifier("movement_ability");
+    public static final Identifier SCREEN_ABILITY = AbilityLock.identifier("screen_ability");
 
     private static final Map<Identifier, Supplier<Ability>> FACTORIES = new HashMap<>();
 
@@ -34,9 +31,12 @@ public class AbilityTypes {
     }
 
     public static void init() {
-        register(BLOCK_BREAK, BlockBreak::new);
-        register(DIMENSION_TRAVEL, DimensionTravel::new);
-        register(BLOCK_INTERACT, BlockInteract::new);
-        register(ENTITY_HURT, EntityHurt::new);
+        register(BLOCK_BREAK, BlockBreakAbility::new);
+        register(DIMENSION_TRAVEL, DimensionTravelAbility::new);
+        register(BLOCK_INTERACT, BlockInteractAbility::new);
+        register(ENTITY_HURT, EntityHurtAbility::new);
+        register(CRAFTING_ABILITY, CraftingAbility::new);
+        register(MOVEMENT_ABILITY, StanceAbility::new);
+        register(SCREEN_ABILITY, ScreenOpenAbility::new);
     }
 }

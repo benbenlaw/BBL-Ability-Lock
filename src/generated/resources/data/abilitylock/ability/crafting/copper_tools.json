@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:crafting_ability",
+  "display_name": "Copper Tools",
+  "parents": [
+    "abilitylock:crafting/stone_tools"
+  ],
+  "targets": [
+    "minecraft:copper_pickaxe",
+    "minecraft:copper_axe",
+    "minecraft:copper_shovel",
+    "minecraft:copper_hoe",
+    "minecraft:copper_sword"
+  ]
+}

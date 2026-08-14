@@ -5,44 +5,59 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 
 import java.util.*;
 
-public record AbilityLockData(Set<String> unlockedAbilities) {
+public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identifier> presetId, boolean eliminated) {
 
     public static final Codec<AbilityLockData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            Codec.STRING.listOf()
-                    .xmap((List<String> list) -> (Set<String>) new HashSet<>(list), (Set<String> set) -> new ArrayList<>(set))
+            Identifier.CODEC.listOf()
+                    .xmap((List<Identifier> list) -> (Set<Identifier>) new HashSet<>(list), (Set<Identifier> set) -> new ArrayList<>(set))
                     .fieldOf("unlocked")
-                    .forGetter(AbilityLockData::unlockedAbilities)
+                    .forGetter(AbilityLockData::unlockedAbilities),
+            Identifier.CODEC.optionalFieldOf("preset").forGetter(AbilityLockData::presetId),
+            Codec.BOOL.optionalFieldOf("eliminated", false).forGetter(AbilityLockData::eliminated)
     ).apply(instance, AbilityLockData::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AbilityLockData> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()).cast(),
+            Identifier.STREAM_CODEC.apply(ByteBufCodecs.list()).cast(),
             AbilityLockData::toList,
-            AbilityLockData::fromList
+            Identifier.STREAM_CODEC.apply(ByteBufCodecs::optional),
+            AbilityLockData::presetId,
+            ByteBufCodecs.BOOL,
+            AbilityLockData::eliminated,
+            AbilityLockData::fromParts
     );
 
-    private static List<String> toList(AbilityLockData data) {
+    private static List<Identifier> toList(AbilityLockData data) {
         return new ArrayList<>(data.unlockedAbilities());
     }
 
-    private static AbilityLockData fromList(List<String> list) {
-        return new AbilityLockData(new HashSet<>(list));
+    private static AbilityLockData fromParts(List<Identifier> list, Optional<Identifier> presetId, boolean eliminated) {
+        return new AbilityLockData(new HashSet<>(list), presetId, eliminated);
     }
 
-    public AbilityLockData(List<String> list) {
-        this(new HashSet<>(list));
+    public AbilityLockData(Set<Identifier> unlockedAbilities) {
+        this(unlockedAbilities, Optional.empty(), false);
     }
 
-    public boolean has(String ability) {
+    public boolean has(Identifier ability) {
         return unlockedAbilities.contains(ability);
     }
 
-    public AbilityLockData withUnlocked(String ability) {
+    public AbilityLockData withUnlocked(Identifier ability) {
         if (unlockedAbilities.contains(ability)) return this;
-        Set<String> copy = new HashSet<>(unlockedAbilities);
+        Set<Identifier> copy = new HashSet<>(unlockedAbilities);
         copy.add(ability);
-        return new AbilityLockData(copy);
+        return new AbilityLockData(copy, presetId, eliminated);
+    }
+
+    public AbilityLockData withPreset(Identifier presetId) {
+        return new AbilityLockData(unlockedAbilities, Optional.of(presetId), eliminated);
+    }
+
+    public AbilityLockData withEliminated(boolean eliminated) {
+        return new AbilityLockData(unlockedAbilities, presetId, eliminated);
     }
 }

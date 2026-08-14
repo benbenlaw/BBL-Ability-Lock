@@ -1,14 +1,15 @@
 package com.benbenlaw.abilitylock.task;
 
-import com.benbenlaw.abilitylock.ability.old.Ability;
-import com.benbenlaw.abilitylock.ability.old.AbilityChecker;
-import com.benbenlaw.abilitylock.ability.old.AbilityRegistry;
+import com.benbenlaw.abilitylock.ability.AbilityChecker;
+import com.benbenlaw.abilitylock.ability.AbilityData;
+import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.TaskProgressData;
 import com.benbenlaw.abilitylock.config.ServerConfig;
 import com.benbenlaw.abilitylock.network.packet.SyncTaskProgressPacket;
 import com.benbenlaw.abilitylock.util.SpeedrunManager;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -90,13 +91,13 @@ public class TaskManager {
 
     private static boolean canAttempt(ServerPlayer player, Task task) {
         if (!task.hasRequiredAbilities()) return true;
-        for (String abilityId : task.requiredAbilities()) {
+        for (Identifier abilityId : task.requiredAbilities()) {
             if (!AbilityChecker.isUnlocked(player, abilityId)) return false;
         }
         return true;
     }
 
-    public static void ensureGridAssigned(ServerPlayer player, int gridSize, Set<String> startingAbilities) {
+    public static void ensureGridAssigned(ServerPlayer player, int gridSize, Set<Identifier> startingAbilities) {
         TaskProgressData data = player.getData(AbilityLockAttachments.TASK_PROGRESS);
         if (!data.gridTaskIds().isEmpty()) return;
 
@@ -107,8 +108,8 @@ public class TaskManager {
         PacketDistributor.sendToPlayer(player, new SyncTaskProgressPacket(updated));
     }
 
-    private static List<String> buildSolvableGrid(int targetCount, Set<String> startingAbilities, RandomSource random) {
-        Set<String> unlocked = new HashSet<>(startingAbilities);
+    private static List<String> buildSolvableGrid(int targetCount, Set<Identifier> startingAbilities, RandomSource random) {
+        Set<Identifier> unlocked = new HashSet<>(startingAbilities);
         Random rng = new Random(random.nextLong());
 
         List<Task> allTasks = new ArrayList<>(TaskRegistry.all().values());
@@ -150,7 +151,7 @@ public class TaskManager {
         return selected;
     }
 
-    private static @Nullable Task pickReachable(List<Task> pool, Set<String> unlocked) {
+    private static @Nullable Task pickReachable(List<Task> pool, Set<Identifier> unlocked) {
         for (Task candidate : pool) {
             if (unlocked.containsAll(candidate.requiredAbilities())) {
                 return candidate;
@@ -159,39 +160,45 @@ public class TaskManager {
         return null;
     }
 
-    private static void simulateAbilityGrant(Set<String> unlocked, List<Task> pendingA, List<Task> pendingB, Random rng) {
-        List<Ability> eligible = new ArrayList<>();
-        for (Ability ability : AbilityRegistry.all().values()) {
-            if (unlocked.contains(ability.id())) continue;
-            if (ability.hasParent() && !unlocked.contains(ability.parent())) continue;
-            eligible.add(ability);
+    private static void simulateAbilityGrant(Set<Identifier> unlocked, List<Task> pendingA, List<Task> pendingB, Random rng) {
+        List<Identifier> eligible = new ArrayList<>();
+        for (Identifier abilityId : AbilityLoader.DATA.keySet()) {
+            if (unlocked.contains(abilityId)) continue;
+
+            AbilityData abilityData = AbilityLoader.DATA.get(abilityId);
+            if (!unlocked.containsAll(abilityData.parents())) continue;
+
+            eligible.add(abilityId);
         }
         if (eligible.isEmpty()) return;
 
-        Set<String> relevant = new HashSet<>();
+        Set<Identifier> relevant = new HashSet<>();
         for (Task task : pendingA) {
-            for (String abilityId : task.requiredAbilities()) {
-                relevant.addAll(AbilityRegistry.withAncestors(abilityId));
+            for (Identifier abilityId : task.requiredAbilities()) {
+                relevant.addAll(AbilityLoader.withAncestors(abilityId));
             }
         }
         for (Task task : pendingB) {
-            for (String abilityId : task.requiredAbilities()) {
-                relevant.addAll(AbilityRegistry.withAncestors(abilityId));
+            for (Identifier abilityId : task.requiredAbilities()) {
+                relevant.addAll(AbilityLoader.withAncestors(abilityId));
             }
         }
 
-        List<Ability> preferred = new ArrayList<>();
-        for (Ability ability : eligible) {
-            if (relevant.contains(ability.id())) preferred.add(ability);
+        List<Identifier> preferred = new ArrayList<>();
+        for (Identifier abilityId : eligible) {
+            if (relevant.contains(abilityId)) preferred.add(abilityId);
         }
 
-        List<Ability> pool = preferred.isEmpty() ? eligible : preferred;
-        unlocked.add(pool.get(rng.nextInt(pool.size())).id());
+        List<Identifier> pool = preferred.isEmpty() ? eligible : preferred;
+        unlocked.add(pool.get(rng.nextInt(pool.size())));
     }
 
     private static void onTaskCompleted(ServerPlayer player, Task task) {
-        AbilityChecker.grantRandomEligible(player)
-                .ifPresent(a -> player.sendSystemMessage(Component.literal("Locked ability unlocked: " + a.displayName())));
+        AbilityChecker.grantRandomEligible(player).ifPresent(id -> {
+            AbilityData data = AbilityLoader.DATA.get(id);
+            String name = data != null ? data.displayName() : id.toString();
+            player.sendSystemMessage(Component.literal("Locked ability unlocked: " + name));
+        });
     }
 
     public static void forceComplete(ServerPlayer player, Task task) {

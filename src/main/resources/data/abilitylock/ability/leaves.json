@@ -1,5 +1,0 @@
-{
-  "display_name": "Leaves",
-  "type": "abilitylock:block_break",
-  "targets": ["#minecraft:leaves"]
-}

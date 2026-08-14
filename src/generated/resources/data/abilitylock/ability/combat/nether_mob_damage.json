@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:entity_hurt_ability",
+  "display_name": "Nether Mob Damage",
+  "parents": [
+    "abilitylock:dimensions/nether_travel"
+  ],
+  "targets": [
+    "minecraft:magma_cube",
+    "minecraft:zombified_piglin",
+    "minecraft:wither_skeleton",
+    "minecraft:strider",
+    "minecraft:blaze"
+  ]
+}

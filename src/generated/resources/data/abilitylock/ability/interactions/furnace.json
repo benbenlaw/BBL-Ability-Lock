@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_interact_ability",
+  "display_name": "Furnace",
+  "parents": [
+    "abilitylock:interactions/crafting_table"
+  ],
+  "targets": [
+    "#c:player_workstations/furnaces"
+  ]
+}

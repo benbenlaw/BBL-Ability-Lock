@@ -1,7 +1,6 @@
 package com.benbenlaw.abilitylock.util;
 
-import com.benbenlaw.abilitylock.ability.old.Ability;
-import com.benbenlaw.abilitylock.ability.old.AbilityRegistry;
+import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.network.packet.StopSpeedrunTimerPacket;
@@ -44,9 +43,9 @@ public class SpeedrunManager {
 
     private static List<String> unlockedAbilityNames(ServerPlayer player) {
         AbilityLockData data = player.getData(AbilityLockAttachments.ABILITY_LOCK);
-        return AbilityRegistry.all().values().stream()
-                .filter(a -> data.has(a.id()))
-                .map(Ability::displayName)
+        return AbilityLoader.DATA.entrySet().stream()
+                .filter(entry -> data.has(entry.getKey()))
+                .map(entry -> entry.getValue().displayName())
                 .collect(Collectors.toList());
     }
 }

@@ -1,5 +1,0 @@
-{
-  "display_name": "Nether",
-  "type": "abilitylock:dimension_travel",
-  "targets": ["minecraft:the_nether"]
-}

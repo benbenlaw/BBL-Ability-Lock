@@ -87,9 +87,6 @@ public class AbilityLockScreen extends Screen {
             assignSlot(root);
         }
 
-        // Anything that never got a slot (e.g. every one of its parents is
-        // a typo'd/missing id) still gets one, so it's visible instead of
-        // silently absent from the screen.
         for (Identifier id : abilityIds) {
             if (!nodeSlot.containsKey(id)) {
                 nodeDepth.putIfAbsent(id, 0);
@@ -145,7 +142,6 @@ public class AbilityLockScreen extends Screen {
         int totalWidth = totalSlots * (BOX_WIDTH + COL_GAP) - COL_GAP;
         int startX = (this.width - totalWidth) / 2;
 
-        // One connector per parent - a multi-parent node gets multiple lines in.
         for (Identifier id : abilityIds) {
             for (Identifier parent : AbilityLoader.DATA.get(id).parents()) {
                 if (nodeSlot.containsKey(parent)) {
@@ -172,7 +168,7 @@ public class AbilityLockScreen extends Screen {
             AbilityData hoveredData = AbilityLoader.DATA.get(hoveredId);
             List<Component> tooltip = new ArrayList<>();
             tooltip.add(Component.translatable(hoveredData.displayName()));
-            tooltip.add(Component.literal(data.has(String.valueOf(hoveredId)) ? "Unlocked" : "Locked"));
+            tooltip.add(Component.literal(data.has(Identifier.parse(String.valueOf(hoveredId))) ? "Unlocked" : "Locked"));
 
             List<ClientTooltipComponent> tooltipComponents = new ArrayList<>();
             for (Component line : tooltip) {
@@ -200,7 +196,7 @@ public class AbilityLockScreen extends Screen {
         int boxW = (int) Math.round(BOX_WIDTH * scale);
         int boxH = (int) Math.round(BOX_HEIGHT * scale);
 
-        boolean unlocked = data.has(String.valueOf(id));
+        boolean unlocked = data.has(id);
         boolean nextPotential = !unlocked && allParentsGranted(abilityData.parents(), data);
         boolean hovered = mouseX >= x && mouseX <= x + boxW && mouseY >= y && mouseY <= y + boxH;
 
@@ -230,7 +226,7 @@ public class AbilityLockScreen extends Screen {
 
     private boolean allParentsGranted(List<Identifier> parents, AbilityLockData data) {
         for (Identifier parent : parents) {
-            if (!data.has(String.valueOf(parent))) return false;
+            if (!data.has(parent)) return false;
         }
         return true;
     }

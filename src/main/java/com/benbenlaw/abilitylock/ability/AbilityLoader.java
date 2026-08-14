@@ -7,7 +7,9 @@ import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.profiling.ProfilerFiller;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class AbilityLoader extends SimpleJsonResourceReloadListener<AbilityData> {
 
@@ -36,5 +38,22 @@ public class AbilityLoader extends SimpleJsonResourceReloadListener<AbilityData>
         }
 
         System.out.println("Loaded " + DATA.size() + " abilities (" + ABILITIES.size() + " with active enforcement)");
+    }
+
+    public static Set<Identifier> withAncestors(Identifier abilityId) {
+        Set<Identifier> result = new LinkedHashSet<>();
+        collectAncestors(abilityId, result);
+        return result;
+    }
+
+    private static void collectAncestors(Identifier abilityId, Set<Identifier> out) {
+        if (!out.add(abilityId)) return;
+
+        AbilityData data = DATA.get(abilityId);
+        if (data == null) return;
+
+        for (Identifier parent : data.parents()) {
+            collectAncestors(parent, out);
+        }
     }
 }

@@ -1,7 +1,6 @@
 package com.benbenlaw.abilitylock.events.client;
 
 import com.benbenlaw.abilitylock.AbilityLock;
-import com.benbenlaw.abilitylock.command.AbilityLockClientCommand;
 import com.benbenlaw.abilitylock.config.ClientConfig;
 import com.benbenlaw.abilitylock.screen.AbilityLockScreen;
 import com.benbenlaw.abilitylock.screen.PendingAbilityLockWorldSettings;
@@ -22,11 +21,6 @@ import net.neoforged.neoforge.client.event.*;
 
 @EventBusSubscriber(modid = AbilityLock.MOD_ID, value = Dist.CLIENT)
 public class ClientEvents {
-
-    @SubscribeEvent
-    public static void onRegisterCommands(RegisterClientCommandsEvent event) {
-        AbilityLockClientCommand.register(event.getDispatcher());
-    }
 
     @SubscribeEvent
     public static void onClientPress(InputEvent.Key event) {
@@ -93,23 +87,5 @@ public class ClientEvents {
     @SubscribeEvent
     public static void onPlayerLogout(ClientPlayerNetworkEvent.LoggingOut event) {
         SpeedrunTimer.save();
-    }
-
-    @SubscribeEvent
-    public static void onScreenInit(ScreenEvent.Init.Post event) {
-        if (!ClientConfig.showAbilityLockWorldCreation.get()) return;
-
-        if (event.getScreen() instanceof SelectWorldScreen screen) {
-            int width = 110;
-            int x = screen.width - width - 5;
-            int y = 6;
-
-            Button button = Button.builder(Component.literal("Create AbilityLock World"), (b) -> {
-                PendingAbilityLockWorldSettings.requestTabOnNextScreen();
-                CreateWorldScreen.openFresh(screen.getMinecraft(), () -> screen.getMinecraft().setScreen(screen));
-            }).bounds(x, y, width, 20).build();
-
-            event.addListener(button);
-        }
     }
 }

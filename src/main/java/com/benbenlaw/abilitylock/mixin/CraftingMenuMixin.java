@@ -1,6 +1,10 @@
 package com.benbenlaw.abilitylock.mixin;
 
-import com.benbenlaw.abilitylock.ability.old.AbilityChecker;
+import com.benbenlaw.abilitylock.ability.Ability;
+import com.benbenlaw.abilitylock.ability.AbilityData;
+import com.benbenlaw.abilitylock.ability.AbilityLoader;
+import com.benbenlaw.abilitylock.ability.abilities.CraftingAbility;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -23,11 +27,9 @@ public abstract class CraftingMenuMixin {
 
     @Redirect(
             method = "slotChangedCraftingGrid",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/inventory/ResultContainer;setItem(ILnet/minecraft/world/item/ItemStack;)V"
-            )
+            at = @At(value = "INVOKE", target = "Lnet/minecraft/world/inventory/ResultContainer;setItem(ILnet/minecraft/world/item/ItemStack;)V" )
     )
+
     private static void abilityLock$blockRestrictedResult(
             ResultContainer resultSlots, int slot, ItemStack result,
             AbstractContainerMenu menu, ServerLevel level, Player player, CraftingContainer container,
@@ -38,9 +40,18 @@ public abstract class CraftingMenuMixin {
                     .getRecipeFor(RecipeType.CRAFTING, container.asCraftInput(), level, recipeHint);
 
             if (maybeRecipe.isPresent()) {
-                String recipeId = maybeRecipe.get().id().identifier().toString();
-                if (!AbilityChecker.canCraft(player, recipeId)) {
-                    result = ItemStack.EMPTY;
+                Identifier recipeId = maybeRecipe.get().id().identifier();
+
+                for (Ability ability : AbilityLoader.ABILITIES.values()) {
+                    if (!(ability instanceof CraftingAbility craftingAbility)) continue;
+
+                    AbilityData data = ability.getData();
+                    if (data == null) continue;
+
+                    if (craftingAbility.blocksRecipe(player, recipeId, data)) {
+                        result = ItemStack.EMPTY;
+                        break;
+                    }
                 }
             }
         }

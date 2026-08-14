@@ -9,6 +9,7 @@
     "KeyboardInputMixin",
     "LocalPlayerAutoJumpMixin",
     "client.ClientInputAccessor",
+    "client.CreateWorldScreenGameTabMixin",
     "client.CreateWorldScreenMixin"
   ],
   "injectors": {

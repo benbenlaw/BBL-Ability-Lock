@@ -4,14 +4,18 @@ import com.benbenlaw.abilitylock.AbilityLock;
 import com.benbenlaw.abilitylock.ability.Ability;
 import com.benbenlaw.abilitylock.ability.AbilityData;
 import com.benbenlaw.abilitylock.ability.AbilityLoader;
-import com.benbenlaw.abilitylock.ability.abilities.BlockBreak;
-import com.benbenlaw.abilitylock.ability.abilities.BlockInteract;
-import com.benbenlaw.abilitylock.ability.abilities.DimensionTravel;
-import com.benbenlaw.abilitylock.ability.abilities.EntityHurt;
+import com.benbenlaw.abilitylock.ability.abilities.*;
+import com.benbenlaw.abilitylock.events.client.ClientEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.InputEvent;
+import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -25,7 +29,7 @@ public class AbilityEvents {
         if (event.getLevel().isClientSide()) return;
 
         for (Ability ability : AbilityLoader.ABILITIES.values()) {
-            if (!(ability instanceof BlockBreak blockBreakAbility)) continue;
+            if (!(ability instanceof BlockBreakAbility blockBreakAbility)) continue;
 
             AbilityData data = ability.getData();
             if (data == null) continue;
@@ -39,7 +43,7 @@ public class AbilityEvents {
         if (event.getEntity().level().isClientSide()) return;
 
         for (Ability ability : AbilityLoader.ABILITIES.values()) {
-            if (!(ability instanceof DimensionTravel dimensionTravel)) continue;
+            if (!(ability instanceof DimensionTravelAbility dimensionTravel)) continue;
             if (event.getEntity() instanceof Player player) {
                 AbilityData data = ability.getData();
                 if (data == null) continue;
@@ -54,7 +58,7 @@ public class AbilityEvents {
         if (event.getEntity().level().isClientSide()) return;
 
         for (Ability ability : AbilityLoader.ABILITIES.values()) {
-            if (!(ability instanceof BlockInteract blockInteract)) continue;
+            if (!(ability instanceof BlockInteractAbility blockInteract)) continue;
 
             AbilityData data = ability.getData();
             if (data == null) continue;
@@ -68,7 +72,7 @@ public class AbilityEvents {
         if (event.getEntity().level().isClientSide()) return;
 
         for (Ability ability : AbilityLoader.ABILITIES.values()) {
-            if (!(ability instanceof EntityHurt entityHurt)) continue;
+            if (!(ability instanceof EntityHurtAbility entityHurt)) continue;
 
             AbilityData data = ability.getData();
             if (data == null) continue;

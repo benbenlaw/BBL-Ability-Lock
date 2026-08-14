@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:crafting_ability",
+  "display_name": "Stone Tools",
+  "parents": [
+    "abilitylock:crafting/wooden_tools"
+  ],
+  "targets": [
+    "minecraft:stone_pickaxe",
+    "minecraft:stone_axe",
+    "minecraft:stone_shovel",
+    "minecraft:stone_hoe",
+    "minecraft:stone_sword"
+  ]
+}

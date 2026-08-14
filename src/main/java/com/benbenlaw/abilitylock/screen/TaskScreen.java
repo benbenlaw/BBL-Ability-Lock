@@ -1,8 +1,9 @@
 package com.benbenlaw.abilitylock.screen;
 
-import com.benbenlaw.abilitylock.ability.old.Ability;
-import com.benbenlaw.abilitylock.ability.old.AbilityChecker;
-import com.benbenlaw.abilitylock.ability.old.AbilityRegistry;
+import com.benbenlaw.abilitylock.ability.Ability;
+import com.benbenlaw.abilitylock.ability.AbilityChecker;
+import com.benbenlaw.abilitylock.ability.AbilityData;
+import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.TaskProgressData;
 import com.benbenlaw.abilitylock.task.Task;
@@ -13,6 +14,7 @@ import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 
 import java.util.ArrayList;
@@ -104,9 +106,10 @@ public class TaskScreen extends Screen {
 
             if (!hoveredAttemptable) {
                 tooltip.add(Component.literal("Locked - requires ability:"));
-                for (String abilityId : hoveredTask.requiredAbilities()) {
+                for (Identifier abilityId : hoveredTask.requiredAbilities()) {
                     if (!AbilityChecker.isUnlocked(this.minecraft.player, abilityId)) {
-                        String label = AbilityRegistry.get(abilityId).map(Ability::displayName).orElse(abilityId);
+                        AbilityData abilityData = AbilityLoader.DATA.get(abilityId);
+                        String label = abilityData != null ? abilityData.displayName() : abilityId.toString();
                         tooltip.add(Component.literal(" - " + label));
                     }
                 }
@@ -134,7 +137,7 @@ public class TaskScreen extends Screen {
 
     private boolean canAttempt(Player player, Task task) {
         if (!task.hasRequiredAbilities()) return true;
-        for (String abilityId : task.requiredAbilities()) {
+        for (Identifier abilityId : task.requiredAbilities()) {
             if (!AbilityChecker.isUnlocked(player, abilityId)) return false;
         }
         return true;

@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_break_ability",
+  "display_name": "Breaking Emerald",
+  "parents": [
+    "abilitylock:breaking/break_gold"
+  ],
+  "targets": [
+    "#c:ores/emerald"
+  ]
+}

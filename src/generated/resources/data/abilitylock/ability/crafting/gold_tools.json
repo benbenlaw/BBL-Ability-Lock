@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:crafting_ability",
+  "display_name": "Gold Tools",
+  "parents": [
+    "abilitylock:crafting/copper_tools"
+  ],
+  "targets": [
+    "minecraft:golden_pickaxe",
+    "minecraft:golden_axe",
+    "minecraft:golden_shovel",
+    "minecraft:golden_hoe",
+    "minecraft:golden_sword"
+  ]
+}

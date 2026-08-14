@@ -1,6 +1,6 @@
 package com.benbenlaw.abilitylock.screen;
 
-import com.benbenlaw.abilitylock.util.AbilityLockWorldPreset;
+import net.minecraft.resources.Identifier;
 import org.jspecify.annotations.Nullable;
 
 public final class PendingAbilityLockWorldSettings {
@@ -8,17 +8,15 @@ public final class PendingAbilityLockWorldSettings {
     public static final int DEFAULT_GRID_SIZE = 5;
 
     private static @Nullable String pendingLevelName;
-    private static @Nullable AbilityLockWorldPreset pendingPreset;
+    private static @Nullable Identifier pendingPresetId;
     private static int pendingGridSize = DEFAULT_GRID_SIZE;
-
-    private static boolean pendingTabRequest = false;
 
     private PendingAbilityLockWorldSettings() {
     }
 
-    public static void set(String levelName, AbilityLockWorldPreset preset, int gridSize) {
+    public static void set(String levelName, @Nullable Identifier presetId, int gridSize) {
         pendingLevelName = levelName;
-        pendingPreset = preset;
+        pendingPresetId = presetId;
         pendingGridSize = gridSize;
     }
 
@@ -27,23 +25,13 @@ public final class PendingAbilityLockWorldSettings {
             return null;
         }
 
-        Result result = new Result(pendingPreset, pendingGridSize);
+        Result result = new Result(pendingPresetId, pendingGridSize);
         pendingLevelName = null;
-        pendingPreset = null;
+        pendingPresetId = null;
         pendingGridSize = DEFAULT_GRID_SIZE;
         return result;
     }
 
-    public static void requestTabOnNextScreen() {
-        pendingTabRequest = true;
-    }
-
-    public static boolean consumeTabRequest() {
-        boolean was = pendingTabRequest;
-        pendingTabRequest = false;
-        return was;
-    }
-
-    public record Result(AbilityLockWorldPreset preset, int gridSize) {
+    public record Result(@Nullable Identifier presetId, int gridSize) {
     }
 }

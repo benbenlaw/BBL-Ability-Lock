@@ -1,5 +1,7 @@
 package com.benbenlaw.abilitylock.task;
 
+import net.minecraft.resources.Identifier;
+
 import java.util.*;
 
 public class TaskRegistry {
@@ -9,7 +11,7 @@ public class TaskRegistry {
         return register(id, displayName, criterion, Set.of());
     }
 
-    public static Task register(String id, String displayName, TaskCriterion criterion, Set<String> requiredAbilities) {
+    public static Task register(String id, String displayName, TaskCriterion criterion, Set<Identifier> requiredAbilities) {
         Task task = new Task(id, displayName, criterion, requiredAbilities);
         TASKS.put(id, task);
         return task;

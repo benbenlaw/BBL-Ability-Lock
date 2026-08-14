@@ -1,0 +1,12 @@
+{
+  "display_name": "Hardcore",
+  "on_death_lose_world": true,
+  "starting_abilities": [
+    "abilitylock:movement/forward"
+  ],
+  "unlockable_abilities": [
+    "abilitylock:movement/backward",
+    "abilitylock:movement/left",
+    "abilitylock:movement/right"
+  ]
+}
