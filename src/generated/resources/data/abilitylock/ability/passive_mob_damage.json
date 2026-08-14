@@ -1,0 +1,17 @@
+{
+  "type": "abilitylock:entity_hurt",
+  "display_name": "Passive Mob Damage",
+  "parents": [
+    "abilitylock:stone_tools"
+  ],
+  "targets": [
+    "minecraft:cow",
+    "minecraft:sheep",
+    "minecraft:chicken",
+    "minecraft:pig",
+    "minecraft:bat",
+    "minecraft:bee",
+    "minecraft:fox",
+    "minecraft:wolf"
+  ]
+}

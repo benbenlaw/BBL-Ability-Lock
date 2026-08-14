@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_interact",
+  "display_name": "Smithing",
+  "parents": [
+    "abilitylock:"
+  ],
+  "targets": [
+    "minecraft:enchanting_table"
+  ]
+}

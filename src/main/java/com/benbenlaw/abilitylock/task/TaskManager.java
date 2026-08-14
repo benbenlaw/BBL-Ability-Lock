@@ -1,8 +1,8 @@
 package com.benbenlaw.abilitylock.task;
 
-import com.benbenlaw.abilitylock.ability.Ability;
-import com.benbenlaw.abilitylock.ability.AbilityChecker;
-import com.benbenlaw.abilitylock.ability.AbilityRegistry;
+import com.benbenlaw.abilitylock.ability.old.Ability;
+import com.benbenlaw.abilitylock.ability.old.AbilityChecker;
+import com.benbenlaw.abilitylock.ability.old.AbilityRegistry;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.TaskProgressData;
 import com.benbenlaw.abilitylock.config.ServerConfig;

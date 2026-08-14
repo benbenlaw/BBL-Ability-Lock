@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_break",
+  "display_name": "Breaking Redstone",
+  "parents": [
+    "abilitylock:break_lapis"
+  ],
+  "targets": [
+    "#c:ores/redstone"
+  ]
+}

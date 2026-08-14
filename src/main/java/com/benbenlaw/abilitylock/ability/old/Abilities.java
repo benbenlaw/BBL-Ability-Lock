@@ -1,4 +1,4 @@
-package com.benbenlaw.abilitylock.ability;
+package com.benbenlaw.abilitylock.ability.old;
 
 public class Abilities {
 
@@ -15,7 +15,7 @@ public class Abilities {
     public static final Ability STRAFE_RIGHT = AbilityRegistry.register("strafe_right", "Strafing: Right", "copper");
     public static final Ability BACKWARDS = AbilityRegistry.register("backwards", "Walking Backwards", "stone");
 
-    //Screens Locks
+    //Screens Locks (ALL ADDED TO NEW VERSION ADDED SMITHING TABLE
     public static final Ability CRAFTING = AbilityRegistry.register("crafting", "Crafting", "inventory");
     public static final Ability CHEST = AbilityRegistry.register("chests", "Chests", "inventory");
     public static final Ability FURNACE = AbilityRegistry.register("furnace", "Furnace", "crafting");
@@ -24,7 +24,7 @@ public class Abilities {
     public static final Ability BLAST_FURNACE = AbilityRegistry.register("blast_furnace", "Blast Furnace", "furnace");
     public static final Ability ENCHANTING = AbilityRegistry.register("enchanting", "Enchanting", "obsidian");
 
-    //Breaking Locks
+    //Breaking Locks (ALL ADDED TO NEW VERSION AS WELL AS GRANITE, ANDESITE, DIORITE)
     public static final Ability LOG = AbilityRegistry.register("log", "Breaking Logs", "walk");
     public static final Ability STONE = AbilityRegistry.register("stone", "Breaking Stone", "crafting");
     public static final Ability COAL = AbilityRegistry.register("coal", "Breaking Coal", "stone");
@@ -36,11 +36,11 @@ public class Abilities {
     public static final Ability NETHERRACK = AbilityRegistry.register("netherrack", "Breaking Netherrack", "obsidian");
     public static final Ability QUARTZ = AbilityRegistry.register("quartz", "Breaking Quartz Ore", "netherrack");
 
-    //Dimensions
-    public static final Ability NETHER = AbilityRegistry.register("nether", "Nether", "obsidian");
+    //Dimensions (ADDED)
+    public static final Ability NETHER = AbilityRegistry.register("nether.json", "Nether", "obsidian");
     //public static final Ability END = AbilityRegistry.register("end", "End", null);
 
-    //Combat Locks
+    //Combat Locks (Added with aquatic mobs ect
     public static final Ability PASSIVE_KILL = AbilityRegistry.register("passive_kills", "Passive Mobs", "wooden_tools");
     public static final Ability OVERWORLD_HOSTILE_KILLS = AbilityRegistry.register("overworld_hostile_kills", "Overworld Hostile Kills", "stone_tools");
 

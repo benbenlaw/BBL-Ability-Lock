@@ -1,7 +1,7 @@
 package com.benbenlaw.abilitylock.events;
 
-import com.benbenlaw.abilitylock.ability.Abilities;
-import com.benbenlaw.abilitylock.ability.AbilityChecker;
+import com.benbenlaw.abilitylock.ability.old.Abilities;
+import com.benbenlaw.abilitylock.ability.old.AbilityChecker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.*;
 import net.neoforged.api.distmarker.Dist;

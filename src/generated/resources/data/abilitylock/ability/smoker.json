@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_interact",
+  "display_name": "Smoker",
+  "parents": [
+    "abilitylock:furnace"
+  ],
+  "targets": [
+    "minecraft:smoker"
+  ]
+}

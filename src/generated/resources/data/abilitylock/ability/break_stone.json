@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:block_break",
+  "display_name": "Breaking Stone",
+  "parents": [
+    "abilitylock:breaking_logs"
+  ],
+  "targets": [
+    "minecraft:stone",
+    "minecraft:cobblestone"
+  ]
+}

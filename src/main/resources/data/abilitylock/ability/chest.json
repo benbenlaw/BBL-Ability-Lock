@@ -1,0 +1,5 @@
+{
+  "display_name": "Chests",
+  "type": "abilitylock:block_interact",
+  "targets": ["minecraft:chest", "#minecraft:planks"]
+}

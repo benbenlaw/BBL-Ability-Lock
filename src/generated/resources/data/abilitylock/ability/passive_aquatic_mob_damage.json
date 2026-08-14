@@ -1,0 +1,17 @@
+{
+  "type": "abilitylock:entity_hurt",
+  "display_name": "Passive Aquatic Mob Damage",
+  "parents": [
+    "abilitylock:passive_mob_damage"
+  ],
+  "targets": [
+    "minecraft:cod",
+    "minecraft:salmon",
+    "minecraft:tropical_fish",
+    "minecraft:pufferfish",
+    "minecraft:dolphin",
+    "minecraft:turtle",
+    "minecraft:squid",
+    "minecraft:glow_squid"
+  ]
+}

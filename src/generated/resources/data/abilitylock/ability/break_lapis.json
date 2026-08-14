@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_break",
+  "display_name": "Breaking Lapis Lazuli",
+  "parents": [
+    "abilitylock:break_copper"
+  ],
+  "targets": [
+    "#c:ores/lapis"
+  ]
+}

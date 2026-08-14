@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_break",
+  "display_name": "Breaking Diorite",
+  "parents": [
+    "abilitylock:break_stone"
+  ],
+  "targets": [
+    "minecraft:diorite"
+  ]
+}

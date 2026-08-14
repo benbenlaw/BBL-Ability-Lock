@@ -1,7 +1,7 @@
 package com.benbenlaw.abilitylock.events.abilities;
 
-import com.benbenlaw.abilitylock.ability.Abilities;
-import com.benbenlaw.abilitylock.ability.AbilityChecker;
+import com.benbenlaw.abilitylock.ability.old.Abilities;
+import com.benbenlaw.abilitylock.ability.old.AbilityChecker;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;

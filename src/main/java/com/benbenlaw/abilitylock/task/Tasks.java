@@ -1,17 +1,14 @@
 package com.benbenlaw.abilitylock.task;
 
-import com.benbenlaw.abilitylock.ability.Abilities;
+import com.benbenlaw.abilitylock.ability.old.Abilities;
 import com.benbenlaw.abilitylock.task.criteria.*;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.levelgen.structure.BuiltinStructures;
 import net.neoforged.neoforge.common.Tags;
 
-import java.util.List;
 import java.util.Set;
 
 public class Tasks {

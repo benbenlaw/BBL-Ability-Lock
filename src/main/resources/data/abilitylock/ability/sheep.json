@@ -1,0 +1,5 @@
+{
+  "display_name": "Entity Hurt",
+  "type": "abilitylock:entity_hurt",
+  "targets": ["minecraft:sheep", "#minecraft:undead"]
+}

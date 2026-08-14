@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:block_interact",
+  "display_name": "Anvil",
+  "parents": [
+    "abilitylock:crafting_table"
+  ],
+  "targets": [
+    "minecraft:anvil",
+    "minecraft:chipped_anvil"
+  ]
+}

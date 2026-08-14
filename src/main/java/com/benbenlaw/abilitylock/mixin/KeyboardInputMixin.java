@@ -1,6 +1,6 @@
 package com.benbenlaw.abilitylock.mixin;
 
-import com.benbenlaw.abilitylock.ability.Abilities;
+import com.benbenlaw.abilitylock.ability.old.Abilities;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.mixin.client.ClientInputAccessor;

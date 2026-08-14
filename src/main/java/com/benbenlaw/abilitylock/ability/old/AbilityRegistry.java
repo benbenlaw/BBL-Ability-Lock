@@ -1,4 +1,4 @@
-package com.benbenlaw.abilitylock.ability;
+package com.benbenlaw.abilitylock.ability.old;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;

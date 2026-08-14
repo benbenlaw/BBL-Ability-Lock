@@ -1,4 +1,4 @@
-package com.benbenlaw.abilitylock.ability;
+package com.benbenlaw.abilitylock.ability.old;
 
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;

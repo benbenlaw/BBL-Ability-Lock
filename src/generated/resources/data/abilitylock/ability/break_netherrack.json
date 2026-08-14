@@ -1,0 +1,12 @@
+{
+  "type": "abilitylock:block_break",
+  "display_name": "Breaking Netherrack",
+  "parents": [
+    "abilitylock:nether_travel"
+  ],
+  "targets": [
+    "minecraft:netherrack",
+    "minecraft:warped_nylium",
+    "minecraft:crimson_nylium"
+  ]
+}

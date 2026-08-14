@@ -1,7 +1,7 @@
 package com.benbenlaw.abilitylock.screen;
 
-import com.benbenlaw.abilitylock.ability.Ability;
-import com.benbenlaw.abilitylock.ability.AbilityRegistry;
+import com.benbenlaw.abilitylock.ability.AbilityData;
+import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPosition
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import org.jspecify.annotations.NonNull;
 
 import java.util.*;
 
@@ -30,9 +31,12 @@ public class AbilityLockScreen extends Screen {
     private static final double MAX_SCALE = 2.5;
     private static final double ZOOM_STEP = 0.1;
 
-    private final Map<String, Integer> nodeSlot = new HashMap<>();
-    private final Map<String, Integer> nodeDepth = new HashMap<>();
-    private final Map<String, List<String>> childrenOf = new LinkedHashMap<>();
+    private static final Identifier ROOT = Identifier.fromNamespaceAndPath("abilitylock", "__root__");
+
+    private final Map<Identifier, Integer> nodeSlot = new HashMap<>();
+    private final Map<Identifier, Integer> nodeDepth = new HashMap<>();
+    private final Map<Identifier, List<Identifier>> childrenOf = new LinkedHashMap<>();
+    private List<Identifier> abilityIds = new ArrayList<>();
     private int leafCounter = 0;
 
     private static double scale = 1.0;
@@ -61,39 +65,67 @@ public class AbilityLockScreen extends Screen {
         childrenOf.clear();
         leafCounter = 0;
 
-        for (Ability ability : AbilityRegistry.all().values()) {
-            String parentKey = ability.hasParent() ? ability.parent() : "__root__";
-            childrenOf.computeIfAbsent(parentKey, k -> new ArrayList<>()).add(ability.id());
+        abilityIds = new ArrayList<>(AbilityLoader.DATA.keySet());
+
+        for (Identifier id : abilityIds) {
+            List<Identifier> parents = AbilityLoader.DATA.get(id).parents();
+
+            if (parents.isEmpty()) {
+                childrenOf.computeIfAbsent(ROOT, k -> new ArrayList<>()).add(id);
+            } else {
+                for (Identifier parent : parents) {
+                    childrenOf.computeIfAbsent(parent, k -> new ArrayList<>()).add(id);
+                }
+            }
         }
 
-        for (Ability ability : AbilityRegistry.all().values()) {
-            nodeDepth.put(ability.id(), computeDepth(ability));
+        for (Identifier id : abilityIds) {
+            computeDepth(id, new HashSet<>());
         }
 
-        for (String root : childrenOf.getOrDefault("__root__", List.of())) {
+        for (Identifier root : childrenOf.getOrDefault(ROOT, List.of())) {
             assignSlot(root);
+        }
+
+        // Anything that never got a slot (e.g. every one of its parents is
+        // a typo'd/missing id) still gets one, so it's visible instead of
+        // silently absent from the screen.
+        for (Identifier id : abilityIds) {
+            if (!nodeSlot.containsKey(id)) {
+                nodeDepth.putIfAbsent(id, 0);
+                nodeSlot.put(id, leafCounter++);
+            }
         }
     }
 
-    private int computeDepth(Ability ability) {
+    private int computeDepth(Identifier id, Set<Identifier> visiting) {
+        Integer cached = nodeDepth.get(id);
+        if (cached != null) return cached;
+        if (!visiting.add(id)) return 0; // cycle guard
+
+        List<Identifier> parents = AbilityLoader.DATA.get(id).parents();
+
         int depth = 0;
-        Ability current = ability;
-        while (current.hasParent()) {
-            depth++;
-            current = AbilityRegistry.get(current.parent()).orElse(null);
-            if (current == null) break;
+        for (Identifier parent : parents) {
+            if (!AbilityLoader.DATA.containsKey(parent)) continue; // dangling parent reference
+            depth = Math.max(depth, computeDepth(parent, visiting) + 1);
         }
+
+        nodeDepth.put(id, depth);
         return depth;
     }
 
-    private int assignSlot(String id) {
-        List<String> kids = childrenOf.getOrDefault(id, List.of());
+    private int assignSlot(Identifier id) {
+        Integer existing = nodeSlot.get(id);
+        if (existing != null) return existing;
+
+        List<Identifier> kids = childrenOf.getOrDefault(id, List.of());
         int slot;
         if (kids.isEmpty()) {
             slot = leafCounter++;
         } else {
             int sum = 0;
-            for (String kid : kids) sum += assignSlot(kid);
+            for (Identifier kid : kids) sum += assignSlot(kid);
             slot = Math.round(sum / (float) kids.size());
         }
         nodeSlot.put(id, slot);
@@ -101,42 +133,46 @@ public class AbilityLockScreen extends Screen {
     }
 
     @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
+    public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         super.extractRenderState(graphics, mouseX, mouseY, a);
 
         graphics.centeredText(this.font, this.title, this.width / 2, 12, 0xFFFFFFFF);
 
-        if (this.minecraft == null || this.minecraft.player == null) return;
+        if (this.minecraft.player == null) return;
         AbilityLockData data = this.minecraft.player.getData(AbilityLockAttachments.ABILITY_LOCK);
 
         int totalSlots = Math.max(leafCounter, 1);
         int totalWidth = totalSlots * (BOX_WIDTH + COL_GAP) - COL_GAP;
         int startX = (this.width - totalWidth) / 2;
 
-        for (Ability ability : AbilityRegistry.all().values()) {
-            if (ability.hasParent()) {
-                drawConnector(graphics, ability.parent(), ability.id(), startX);
+        // One connector per parent - a multi-parent node gets multiple lines in.
+        for (Identifier id : abilityIds) {
+            for (Identifier parent : AbilityLoader.DATA.get(id).parents()) {
+                if (nodeSlot.containsKey(parent)) {
+                    drawConnector(graphics, parent, id, startX);
+                }
             }
         }
 
-        for (Ability ability : AbilityRegistry.all().values()) {
-            drawNode(graphics, ability, data, startX, mouseX, mouseY);
+        for (Identifier id : abilityIds) {
+            drawNode(graphics, id, data, startX, mouseX, mouseY);
         }
 
-        Ability hoveredAbility = null;
+        Identifier hoveredId = null;
         int boxW = (int) Math.round(BOX_WIDTH * scale);
         int boxH = (int) Math.round(BOX_HEIGHT * scale);
-        for (Ability ability : AbilityRegistry.all().values()) {
-            int[] pos = boxTopLeft(ability.id(), startX);
+        for (Identifier id : abilityIds) {
+            int[] pos = boxTopLeft(id, startX);
             if (mouseX >= pos[0] && mouseX <= pos[0] + boxW && mouseY >= pos[1] && mouseY <= pos[1] + boxH) {
-                hoveredAbility = ability;
+                hoveredId = id;
             }
         }
 
-        if (hoveredAbility != null) {
+        if (hoveredId != null) {
+            AbilityData hoveredData = AbilityLoader.DATA.get(hoveredId);
             List<Component> tooltip = new ArrayList<>();
-            tooltip.add(Component.literal(hoveredAbility.displayName()));
-            tooltip.add(Component.literal(data.has(hoveredAbility.id()) ? "Unlocked" : "Locked"));
+            tooltip.add(Component.translatable(hoveredData.displayName()));
+            tooltip.add(Component.literal(data.has(String.valueOf(hoveredId)) ? "Unlocked" : "Locked"));
 
             List<ClientTooltipComponent> tooltipComponents = new ArrayList<>();
             for (Component line : tooltip) {
@@ -147,7 +183,7 @@ public class AbilityLockScreen extends Screen {
         }
     }
 
-    private int[] boxTopLeft(String id, int startX) {
+    private int[] boxTopLeft(Identifier id, int startX) {
         int slot = nodeSlot.get(id);
         int depth = nodeDepth.get(id);
         double worldX = startX + slot * (BOX_WIDTH + COL_GAP);
@@ -157,14 +193,15 @@ public class AbilityLockScreen extends Screen {
         return new int[]{x, y};
     }
 
-    private void drawNode(GuiGraphicsExtractor graphics, Ability ability, AbilityLockData data, int startX, int mouseX, int mouseY) {
-        int[] pos = boxTopLeft(ability.id(), startX);
+    private void drawNode(GuiGraphicsExtractor graphics, Identifier id, AbilityLockData data, int startX, int mouseX, int mouseY) {
+        AbilityData abilityData = AbilityLoader.DATA.get(id);
+        int[] pos = boxTopLeft(id, startX);
         int x = pos[0], y = pos[1];
         int boxW = (int) Math.round(BOX_WIDTH * scale);
         int boxH = (int) Math.round(BOX_HEIGHT * scale);
 
-        boolean unlocked = data.has(ability.id());
-        boolean nextPotential = !unlocked && (!ability.hasParent() || data.has(ability.parent()));
+        boolean unlocked = data.has(String.valueOf(id));
+        boolean nextPotential = !unlocked && allParentsGranted(abilityData.parents(), data);
         boolean hovered = mouseX >= x && mouseX <= x + boxW && mouseY >= y && mouseY <= y + boxH;
 
         int fill;
@@ -188,7 +225,14 @@ public class AbilityLockScreen extends Screen {
 
         int textColor = unlocked ? 0xFFFFFFFF : 0xFFAAAAAA;
         int textY = y + (boxH - this.font.lineHeight) / 2;
-        drawScrollingText(graphics, Component.nullToEmpty(ability.displayName()), x, y, boxW, boxH, textY, textColor);
+        drawScrollingText(graphics, Component.translatable(abilityData.displayName()), x, y, boxW, boxH, textY, textColor);
+    }
+
+    private boolean allParentsGranted(List<Identifier> parents, AbilityLockData data) {
+        for (Identifier parent : parents) {
+            if (!data.has(String.valueOf(parent))) return false;
+        }
+        return true;
     }
 
     private void drawScrollingText(GuiGraphicsExtractor graphics, Component text, int boxX, int boxY, int boxWidth, int boxHeight, int textY, int color) {
@@ -226,7 +270,7 @@ public class AbilityLockScreen extends Screen {
         graphics.disableScissor();
     }
 
-    private void drawConnector(GuiGraphicsExtractor graphics, String parentId, String childId, int startX) {
+    private void drawConnector(GuiGraphicsExtractor graphics, Identifier parentId, Identifier childId, int startX) {
         int[] parentPos = boxTopLeft(parentId, startX);
         int[] childPos = boxTopLeft(childId, startX);
         int boxW = (int) Math.round(BOX_WIDTH * scale);
@@ -246,9 +290,8 @@ public class AbilityLockScreen extends Screen {
         graphics.fill(childCenterX, midY, childCenterX + 1, childTopY, color);
     }
 
-
     @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+    public boolean mouseClicked(@NonNull MouseButtonEvent event, boolean doubleClick) {
         if (super.mouseClicked(event, doubleClick)) {
             return true;
         }
@@ -265,7 +308,7 @@ public class AbilityLockScreen extends Screen {
     }
 
     @Override
-    public boolean mouseDragged(MouseButtonEvent event, double dx, double dy) {
+    public boolean mouseDragged(@NonNull MouseButtonEvent event, double dx, double dy) {
         if (dragging && event.button() == 0) {
             offsetX = offsetStartX + (event.x() - dragStartX);
             offsetY = offsetStartY + (event.y() - dragStartY);
@@ -290,7 +333,7 @@ public class AbilityLockScreen extends Screen {
 
         double oldScale = scale;
         double newScale = oldScale + (scrollY > 0 ? ZOOM_STEP : -ZOOM_STEP);
-        newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+        newScale = Math.clamp(newScale, MIN_SCALE, MAX_SCALE);
 
         if (newScale != oldScale) {
             double factor = newScale / oldScale;

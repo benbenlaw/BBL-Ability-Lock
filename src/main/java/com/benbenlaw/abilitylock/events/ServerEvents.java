@@ -1,8 +1,9 @@
 package com.benbenlaw.abilitylock.events;
 
 import com.benbenlaw.abilitylock.AbilityLock;
-import com.benbenlaw.abilitylock.ability.Ability;
-import com.benbenlaw.abilitylock.ability.AbilityChecker;
+import com.benbenlaw.abilitylock.ability.AbilityLoader;
+import com.benbenlaw.abilitylock.ability.old.Ability;
+import com.benbenlaw.abilitylock.ability.old.AbilityChecker;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.attachment.TaskProgressData;
@@ -15,8 +16,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
@@ -28,10 +29,14 @@ import java.util.Set;
 public class ServerEvents {
 
     @SubscribeEvent
+    public static void onAddReloadListener(AddServerReloadListenersEvent event) {
+        event.addListener(AbilityLock.identifier("ability"), new AbilityLoader());
+    }
+
+    @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
         AbilityLockCommand.register(event.getDispatcher());
     }
-
 
     @SubscribeEvent
     public static void onPlayerLoggedIn(PlayerEvent.PlayerLoggedInEvent event) {

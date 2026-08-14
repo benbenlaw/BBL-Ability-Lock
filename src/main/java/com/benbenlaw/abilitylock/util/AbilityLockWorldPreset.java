@@ -1,6 +1,6 @@
 package com.benbenlaw.abilitylock.util;
 
-import com.benbenlaw.abilitylock.ability.Abilities;
+import com.benbenlaw.abilitylock.ability.old.Abilities;
 import net.minecraft.network.chat.Component;
 
 import java.util.Set;

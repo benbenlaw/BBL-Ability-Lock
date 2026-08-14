@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_break",
+  "display_name": "Breaking Coal",
+  "parents": [
+    "abilitylock:break_stone"
+  ],
+  "targets": [
+    "#c:ores/coal"
+  ]
+}

@@ -1,8 +1,0 @@
-{
-  "itemGroup.abilitylock": "Example Mod Tab",
-  "block.abilitylock.example_block": "Example Block",
-  "item.abilitylock.example_item": "Example Item",
-  "key.category.abilitylock.abilitylock": "Ability Lock",
-  "key.abilitylock.ability_screen_key": "Open Ability Screen",
-  "key.abilitylock.task_screen_key": "Open Task Screen"
-}

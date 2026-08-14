@@ -1,7 +1,7 @@
 package com.benbenlaw.abilitylock.util;
 
-import com.benbenlaw.abilitylock.ability.Ability;
-import com.benbenlaw.abilitylock.ability.AbilityRegistry;
+import com.benbenlaw.abilitylock.ability.old.Ability;
+import com.benbenlaw.abilitylock.ability.old.AbilityRegistry;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.network.packet.StopSpeedrunTimerPacket;

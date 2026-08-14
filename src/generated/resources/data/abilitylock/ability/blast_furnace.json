@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_interact",
+  "display_name": "Blast Furnace",
+  "parents": [
+    "abilitylock:furnace"
+  ],
+  "targets": [
+    "minecraft:blast_furnace"
+  ]
+}
