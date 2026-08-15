@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:dimension_travel_ability",
+  "display_name": "End Travel",
+  "parents": [
+    "abilitylock:dimension_nether"
+  ],
+  "targets": [
+    "minecraft:the_end"
+  ]
+}

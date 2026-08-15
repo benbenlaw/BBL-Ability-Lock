@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:movement_ability",
+  "display_name": "Backward",
+  "parents": [
+    "abilitylock:forward"
+  ],
+  "targets": [
+    "backward"
+  ]
+}

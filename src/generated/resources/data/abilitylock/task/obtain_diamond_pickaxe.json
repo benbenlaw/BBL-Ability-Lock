@@ -1,0 +1,15 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain a Diamond Pickaxe",
+  "parents": [
+    "abilitylock:gold_pickaxe",
+    "abilitylock:break_diamond",
+    "abilitylock:diamond_tools"
+  ],
+  "required_abilities": [
+    "abilitylock:diamond_tools"
+  ],
+  "targets": [
+    "minecraft:diamond_pickaxe"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Diorite",
+  "parents": [
+    "abilitylock:obtain_cobblestone"
+  ],
+  "required_abilities": [
+    "abilitylock:break_diorite"
+  ],
+  "target": 8,
+  "targets": [
+    "minecraft:diorite"
+  ]
+}

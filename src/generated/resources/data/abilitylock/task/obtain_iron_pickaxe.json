@@ -1,0 +1,17 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain an Iron Pickaxe",
+  "parents": [
+    "abilitylock:copper_pickaxe",
+    "abilitylock:break_iron",
+    "abilitylock:iron_tools"
+  ],
+  "required_abilities": [
+    "abilitylock:iron_tools",
+    "abilitylock:break_iron",
+    "abilitylock:furnace"
+  ],
+  "targets": [
+    "minecraft:iron_pickaxe"
+  ]
+}

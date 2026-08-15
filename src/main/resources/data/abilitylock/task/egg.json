@@ -1,5 +1,0 @@
-{
-  "display_name": "Get an Egg",
-  "type": "abilitylock:item_obtain_task",
-  "targets": ["minecraft:egg"]
-}

@@ -36,7 +36,8 @@ public abstract class CreateWorldScreenMixin {
                 PendingAbilityLockWorldSettings.set(
                         levelName,
                         access.abilityLock$getSelectedPreset(),
-                        access.abilityLock$getSelectedGridSize()
+                        access.abilityLock$getSelectedGridWidth(),
+                        access.abilityLock$getSelectedGridHeight()
                 );
                 return;
             }

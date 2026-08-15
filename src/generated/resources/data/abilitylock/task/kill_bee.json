@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:entity_kill_task",
+  "display_name": "Kill a Bee",
+  "required_abilities": [
+    "abilitylock:passive_mob_damage",
+    "abilitylock:jumping"
+  ],
+  "targets": [
+    "minecraft:bee"
+  ]
+}

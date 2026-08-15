@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Cobblestone",
+  "parents": [
+    "abilitylock:mine_stone"
+  ],
+  "required_abilities": [
+    "abilitylock:break_stone"
+  ],
+  "target": 8,
+  "targets": [
+    "minecraft:cobblestone"
+  ]
+}

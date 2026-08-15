@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:entity_kill_task",
+  "display_name": "Kill a Cow",
+  "required_abilities": [
+    "abilitylock:passive_mob_damage"
+  ],
+  "targets": [
+    "minecraft:cow"
+  ]
+}

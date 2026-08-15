@@ -30,12 +30,12 @@ public class PresetProvider implements DataProvider {
 
             save(futures, cachedOutput, "standard", PresetBuilder
                     .preset("Standard")
-                    .startingAbilities("movement/forward"));
+                    .startingAbilities("forward"));
 
             save(futures, cachedOutput, "hardcore", PresetBuilder
                     .preset("Hardcore")
-                    .startingAbilities("movement/forward")
-                    .unlockableAbilities("movement/backward", "movement/left", "movement/right")
+                    .startingAbilities("forward")
+                    .unlockableAbilities("backward", "left", "right")
                     .onDeathLoseWorld(true));
 
 

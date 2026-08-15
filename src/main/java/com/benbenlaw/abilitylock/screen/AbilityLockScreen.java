@@ -4,6 +4,7 @@ import com.benbenlaw.abilitylock.ability.AbilityData;
 import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
+import com.benbenlaw.abilitylock.task.TaskManager;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
@@ -66,6 +67,7 @@ public class AbilityLockScreen extends Screen {
         leafCounter = 0;
 
         abilityIds = new ArrayList<>(AbilityLoader.DATA.keySet());
+        abilityIds.sort(Comparator.comparing(Identifier::toString));
 
         for (Identifier id : abilityIds) {
             List<Identifier> parents = AbilityLoader.DATA.get(id).parents();
@@ -77,6 +79,10 @@ public class AbilityLockScreen extends Screen {
                     childrenOf.computeIfAbsent(parent, k -> new ArrayList<>()).add(id);
                 }
             }
+        }
+
+        for (List<Identifier> kids : childrenOf.values()) {
+            kids.sort(Comparator.comparing(Identifier::toString));
         }
 
         for (Identifier id : abilityIds) {
@@ -93,6 +99,37 @@ public class AbilityLockScreen extends Screen {
                 nodeSlot.put(id, leafCounter++);
             }
         }
+
+        resolveSlotCollisions();
+    }
+
+    private void resolveSlotCollisions() {
+        Map<Integer, List<Identifier>> byDepth = new TreeMap<>();
+        for (Identifier id : nodeSlot.keySet()) {
+            int depth = nodeDepth.getOrDefault(id, 0);
+            byDepth.computeIfAbsent(depth, d -> new ArrayList<>()).add(id);
+        }
+
+        for (List<Identifier> row : byDepth.values()) {
+            row.sort(Comparator.comparingInt((Identifier id) -> nodeSlot.get(id))
+                    .thenComparing(Identifier::toString));
+
+            int minNextSlot = Integer.MIN_VALUE;
+            for (Identifier id : row) {
+                int slot = nodeSlot.get(id);
+                if (slot < minNextSlot) {
+                    slot = minNextSlot;
+                    nodeSlot.put(id, slot);
+                }
+                minNextSlot = slot + 1;
+            }
+        }
+
+        int maxSlot = 0;
+        for (int slot : nodeSlot.values()) {
+            maxSlot = Math.max(maxSlot, slot);
+        }
+        leafCounter = Math.max(leafCounter, maxSlot + 1);
     }
 
     private int computeDepth(Identifier id, Set<Identifier> visiting) {
@@ -137,6 +174,7 @@ public class AbilityLockScreen extends Screen {
 
         if (this.minecraft.player == null) return;
         AbilityLockData data = this.minecraft.player.getData(AbilityLockAttachments.ABILITY_LOCK);
+        Set<Identifier> runRelevant = TaskManager.getRunRelevantAbilities(this.minecraft.player);
 
         int totalSlots = Math.max(leafCounter, 1);
         int totalWidth = totalSlots * (BOX_WIDTH + COL_GAP) - COL_GAP;
@@ -151,7 +189,7 @@ public class AbilityLockScreen extends Screen {
         }
 
         for (Identifier id : abilityIds) {
-            drawNode(graphics, id, data, startX, mouseX, mouseY);
+            drawNode(graphics, id, data, runRelevant, startX, mouseX, mouseY);
         }
 
         Identifier hoveredId = null;
@@ -166,9 +204,20 @@ public class AbilityLockScreen extends Screen {
 
         if (hoveredId != null) {
             AbilityData hoveredData = AbilityLoader.DATA.get(hoveredId);
+            boolean unlocked = data.has(hoveredId);
+            boolean reachableThisRun = unlocked || runRelevant.contains(hoveredId);
+
             List<Component> tooltip = new ArrayList<>();
             tooltip.add(Component.translatable(hoveredData.displayName()));
-            tooltip.add(Component.literal(data.has(Identifier.parse(String.valueOf(hoveredId))) ? "Unlocked" : "Locked"));
+            if (unlocked) {
+                tooltip.add(Component.literal("Unlocked"));
+            } else if (!reachableThisRun) {
+                tooltip.add(Component.literal("Not part of this run"));
+            } else if (allParentsGranted(hoveredData.parents(), data)) {
+                tooltip.add(Component.literal("Next Up"));
+            } else {
+                tooltip.add(Component.literal("Locked"));
+            }
 
             List<ClientTooltipComponent> tooltipComponents = new ArrayList<>();
             for (Component line : tooltip) {
@@ -189,7 +238,7 @@ public class AbilityLockScreen extends Screen {
         return new int[]{x, y};
     }
 
-    private void drawNode(GuiGraphicsExtractor graphics, Identifier id, AbilityLockData data, int startX, int mouseX, int mouseY) {
+    private void drawNode(GuiGraphicsExtractor graphics, Identifier id, AbilityLockData data, Set<Identifier> runRelevant, int startX, int mouseX, int mouseY) {
         AbilityData abilityData = AbilityLoader.DATA.get(id);
         int[] pos = boxTopLeft(id, startX);
         int x = pos[0], y = pos[1];
@@ -197,7 +246,8 @@ public class AbilityLockScreen extends Screen {
         int boxH = (int) Math.round(BOX_HEIGHT * scale);
 
         boolean unlocked = data.has(id);
-        boolean nextPotential = !unlocked && allParentsGranted(abilityData.parents(), data);
+        boolean reachableThisRun = unlocked || runRelevant.contains(id);
+        boolean nextPotential = !unlocked && reachableThisRun && allParentsGranted(abilityData.parents(), data);
         boolean hovered = mouseX >= x && mouseX <= x + boxW && mouseY >= y && mouseY <= y + boxH;
 
         int fill;
@@ -205,6 +255,9 @@ public class AbilityLockScreen extends Screen {
         if (unlocked) {
             fill = 0xAA1D9E75;
             border = hovered ? 0xFFFFFFFF : 0xFF0F6E56;
+        } else if (!reachableThisRun) {
+            fill = 0xCC101010;
+            border = hovered ? 0xFFAAAAAA : 0xFF000000;
         } else if (nextPotential) {
             fill = 0xAA2A6FB0;
             border = hovered ? 0xFFFFFFFF : 0xFF1B4F80;
@@ -219,7 +272,7 @@ public class AbilityLockScreen extends Screen {
         graphics.fill(x, y, x + 1, y + boxH, border);
         graphics.fill(x + boxW - 1, y, x + boxW, y + boxH, border);
 
-        int textColor = unlocked ? 0xFFFFFFFF : 0xFFAAAAAA;
+        int textColor = unlocked ? 0xFFFFFFFF : (reachableThisRun ? 0xFFAAAAAA : 0xFF777777);
         int textY = y + (boxH - this.font.lineHeight) / 2;
         drawScrollingText(graphics, Component.translatable(abilityData.displayName()), x, y, boxW, boxH, textY, textColor);
     }

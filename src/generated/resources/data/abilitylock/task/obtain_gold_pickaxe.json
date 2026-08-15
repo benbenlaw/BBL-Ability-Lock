@@ -1,0 +1,17 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain an Gold Pickaxe",
+  "parents": [
+    "abilitylock:iron_pickaxe",
+    "abilitylock:break_gold",
+    "abilitylock:gold_tools"
+  ],
+  "required_abilities": [
+    "abilitylock:gold_tools",
+    "abilitylock:break_gold",
+    "abilitylock:furnace"
+  ],
+  "targets": [
+    "minecraft:golden_pickaxe"
+  ]
+}

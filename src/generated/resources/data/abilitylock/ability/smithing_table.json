@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_interact_ability",
+  "display_name": "Smithing",
+  "parents": [
+    "abilitylock:crafting_table"
+  ],
+  "targets": [
+    "minecraft:smithing_table"
+  ]
+}

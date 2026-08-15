@@ -1,0 +1,8 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Sugar Canes",
+  "target": 8,
+  "targets": [
+    "minecraft:sugar_cane"
+  ]
+}

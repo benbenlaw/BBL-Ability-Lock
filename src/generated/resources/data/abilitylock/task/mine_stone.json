@@ -1,0 +1,15 @@
+{
+  "type": "abilitylock:block_break_task",
+  "display_name": "Mine Stone",
+  "parents": [
+    "abilitylock:mine_dirt"
+  ],
+  "required_abilities": [
+    "abilitylock:break_stone",
+    "abilitylock:wooden_tools"
+  ],
+  "target": 8,
+  "targets": [
+    "#c:stones"
+  ]
+}

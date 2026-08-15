@@ -1,0 +1,15 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain a Stone Pickaxe",
+  "parents": [
+    "abilitylock:wooden_pickaxe",
+    "abilitylock:break_stone",
+    "abilitylock:stone_tools"
+  ],
+  "required_abilities": [
+    "abilitylock:stone_tools"
+  ],
+  "targets": [
+    "minecraft:stone_pickaxe"
+  ]
+}

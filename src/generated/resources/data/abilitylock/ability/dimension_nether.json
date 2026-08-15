@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:dimension_travel_ability",
+  "display_name": "Nether Travel",
+  "parents": [
+    "abilitylock:break_obsidian"
+  ],
+  "targets": [
+    "minecraft:the_nether"
+  ]
+}

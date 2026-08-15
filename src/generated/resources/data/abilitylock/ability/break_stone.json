@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:block_break_ability",
+  "display_name": "Breaking Stone",
+  "parents": [
+    "abilitylock:wooden_tools"
+  ],
+  "targets": [
+    "minecraft:stone",
+    "minecraft:cobblestone"
+  ]
+}

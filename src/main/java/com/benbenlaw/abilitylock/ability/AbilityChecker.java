@@ -85,4 +85,27 @@ public class AbilityChecker {
         player.setData(AbilityLockAttachments.ABILITY_LOCK, newData);
         PacketDistributor.sendToPlayer(player, new SyncAbilityLockPacket(newData));
     }
+
+    public static @Nullable Identifier findUnreachableAncestor(Player player, Identifier abilityId) {
+        AbilityLockData data = player.getData(AbilityLockAttachments.ABILITY_LOCK);
+        Set<Identifier> allowedByPreset = allowedByPreset(data);
+        return findUnreachableAncestorRecursive(abilityId, allowedByPreset, new HashSet<>());
+    }
+
+    private static @Nullable Identifier findUnreachableAncestorRecursive(
+            Identifier abilityId, @Nullable Set<Identifier> allowedByPreset, Set<Identifier> visiting) {
+
+        if (!visiting.add(abilityId)) return null; // cycle guard, same idiom as isUnlockedRecursive
+
+        AbilityData abilityData = AbilityLoader.DATA.get(abilityId);
+        if (abilityData == null) return abilityId;
+
+        if (allowedByPreset != null && !allowedByPreset.contains(abilityId)) return abilityId;
+
+        for (Identifier parent : abilityData.parents()) {
+            Identifier broken = findUnreachableAncestorRecursive(parent, allowedByPreset, visiting);
+            if (broken != null) return broken;
+        }
+        return null;
+    }
 }

@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:screen_ability",
+  "display_name": "Inventory",
+  "parents": [
+    "abilitylock:forward"
+  ],
+  "targets": [
+    "inventory"
+  ]
+}

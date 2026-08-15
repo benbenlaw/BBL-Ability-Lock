@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Andesite",
+  "parents": [
+    "abilitylock:obtain_cobblestone"
+  ],
+  "required_abilities": [
+    "abilitylock:break_andesite"
+  ],
+  "target": 8,
+  "targets": [
+    "minecraft:andesite"
+  ]
+}

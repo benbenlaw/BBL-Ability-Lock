@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Granite",
+  "parents": [
+    "abilitylock:obtain_cobblestone"
+  ],
+  "required_abilities": [
+    "abilitylock:break_granite"
+  ],
+  "target": 8,
+  "targets": [
+    "minecraft:granite"
+  ]
+}

@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
@@ -100,13 +101,13 @@ public class TaskManager {
         return true;
     }
 
-    public static void ensureGridAssigned(ServerPlayer player, int gridSize, Set<Identifier> startingAbilities) {
+    public static void ensureGridAssigned(ServerPlayer player, int gridWidth, int gridHeight, Set<Identifier> startingAbilities) {
         TaskProgressData data = player.getData(AbilityLockAttachments.TASK_PROGRESS);
         if (!data.gridTaskIds().isEmpty()) return;
 
-        List<Identifier> grid = buildSolvableGrid(gridSize * gridSize, startingAbilities, player.getRandom());
+        List<Identifier> grid = buildSolvableGrid(gridWidth * gridHeight, startingAbilities, player.getRandom());
 
-        TaskProgressData updated = data.withGridTaskIds(grid);
+        TaskProgressData updated = data.withGrid(grid, gridWidth);
         player.setData(AbilityLockAttachments.TASK_PROGRESS, updated);
         PacketDistributor.sendToPlayer(player, new SyncTaskProgressPacket(updated));
     }
@@ -130,11 +131,12 @@ public class TaskManager {
 
         List<Identifier> selected = new ArrayList<>();
         int immediatePercent = ServerConfig.immediateTaskPercentage.get();
-        int immediateTarget = Math.max(0, Math.min(targetCount, Math.round(targetCount * (immediatePercent / 100f))));
 
         Iterator<TaskType> immediateIter = immediatePool.iterator();
-        while (selected.size() < immediateTarget && immediateIter.hasNext()) {
+        while (selected.size() < targetCount && immediateIter.hasNext()) {
             TaskType task = immediateIter.next();
+            if (rng.nextInt(100) >= immediatePercent) continue;
+
             immediateIter.remove();
             selected.add(task.getId());
             simulateAbilityGrant(unlocked, gatedPool, immediatePool, rng);
@@ -175,17 +177,8 @@ public class TaskManager {
         }
         if (eligible.isEmpty()) return;
 
-        Set<Identifier> relevant = new HashSet<>();
-        for (TaskType task : pendingA) {
-            for (Identifier abilityId : task.getRequiredAbilities()) {
-                relevant.addAll(AbilityLoader.withAncestors(abilityId));
-            }
-        }
-        for (TaskType task : pendingB) {
-            for (Identifier abilityId : task.getRequiredAbilities()) {
-                relevant.addAll(AbilityLoader.withAncestors(abilityId));
-            }
-        }
+        Set<Identifier> relevant = new HashSet<>(relevantAbilitiesFor(pendingA));
+        relevant.addAll(relevantAbilitiesFor(pendingB));
 
         List<Identifier> preferred = new ArrayList<>();
         for (Identifier abilityId : eligible) {
@@ -209,17 +202,13 @@ public class TaskManager {
         List<Identifier> eligible = AbilityChecker.getEligibleAbilities(abilityLockData);
         if (eligible.isEmpty()) return Optional.empty();
 
-        Set<Identifier> relevant = new HashSet<>();
+        List<TaskType> remainingTasks = new ArrayList<>();
         for (Identifier taskId : progressData.gridTaskIds()) {
             if (progressData.isComplete(taskId)) continue;
-
             TaskType task = TaskLoader.TASKS.get(taskId);
-            if (task == null) continue;
-
-            for (Identifier abilityId : task.getRequiredAbilities()) {
-                relevant.addAll(AbilityLoader.withAncestors(abilityId));
-            }
+            if (task != null) remainingTasks.add(task);
         }
+        Set<Identifier> relevant = relevantAbilitiesFor(remainingTasks);
 
         List<Identifier> preferred = new ArrayList<>();
         for (Identifier abilityId : eligible) {
@@ -231,6 +220,26 @@ public class TaskManager {
 
         AbilityChecker.grantSpecific(player, chosen);
         return Optional.of(chosen);
+    }
+
+    private static Set<Identifier> relevantAbilitiesFor(Collection<TaskType> tasks) {
+        Set<Identifier> relevant = new HashSet<>();
+        for (TaskType task : tasks) {
+            for (Identifier abilityId : task.getRequiredAbilities()) {
+                relevant.addAll(AbilityLoader.withAncestors(abilityId));
+            }
+        }
+        return relevant;
+    }
+
+    public static Set<Identifier> getRunRelevantAbilities(Player player) {
+        TaskProgressData progressData = player.getData(AbilityLockAttachments.TASK_PROGRESS);
+        List<TaskType> gridTasks = new ArrayList<>();
+        for (Identifier taskId : progressData.gridTaskIds()) {
+            TaskType task = TaskLoader.TASKS.get(taskId);
+            if (task != null) gridTasks.add(task);
+        }
+        return relevantAbilitiesFor(gridTasks);
     }
 
     public static void forceComplete(ServerPlayer player, TaskType task) {
@@ -250,7 +259,7 @@ public class TaskManager {
 
     public static void resetAll(ServerPlayer player) {
         TaskProgressData current = player.getData(AbilityLockAttachments.TASK_PROGRESS);
-        TaskProgressData blank = new TaskProgressData(new HashMap<>(), new HashSet<>(), current.gridTaskIds());
+        TaskProgressData blank = new TaskProgressData(new HashMap<>(), new HashSet<>(), current.gridTaskIds(), current.gridWidth());
         player.setData(AbilityLockAttachments.TASK_PROGRESS, blank);
         PacketDistributor.sendToPlayer(player, new SyncTaskProgressPacket(blank));
     }
@@ -264,7 +273,7 @@ public class TaskManager {
         Set<Identifier> newCompleted = new HashSet<>(data.completed());
         newCompleted.remove(taskId);
 
-        TaskProgressData updated = new TaskProgressData(newProgress, newCompleted, data.gridTaskIds());
+        TaskProgressData updated = new TaskProgressData(newProgress, newCompleted, data.gridTaskIds(), data.gridWidth());
         player.setData(AbilityLockAttachments.TASK_PROGRESS, updated);
         PacketDistributor.sendToPlayer(player, new SyncTaskProgressPacket(updated));
     }

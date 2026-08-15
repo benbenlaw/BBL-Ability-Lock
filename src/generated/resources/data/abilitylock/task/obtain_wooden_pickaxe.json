@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain a Wooden Pickaxe",
+  "required_abilities": [
+    "abilitylock:wooden_tools"
+  ],
+  "targets": [
+    "minecraft:wooden_pickaxe"
+  ]
+}

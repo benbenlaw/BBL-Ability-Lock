@@ -1,6 +1,0 @@
-{
-  "display_name": "Kill a Zombie",
-  "type": "abilitylock:entity_kill_task",
-  "required_abilities": ["abilitylock:overworld_hostile_kills"],
-  "targets": ["minecraft:zombie"]
-}

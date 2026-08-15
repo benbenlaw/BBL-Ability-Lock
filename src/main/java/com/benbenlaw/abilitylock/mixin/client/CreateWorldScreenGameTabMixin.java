@@ -29,13 +29,16 @@ import java.util.List;
 public abstract class CreateWorldScreenGameTabMixin implements AbilityLockGameTabAccess {
 
     @Unique
-    private static final Integer[] abilityLock$GRID_SIZES = {3, 4, 5};
+    private static final Integer[] abilityLock$GRID_DIMENSIONS = {3, 4, 5, 6, 7};
 
     @Unique
     private @Nullable Identifier abilityLock$selectedPreset;
 
     @Unique
-    private int abilityLock$selectedGridSize = 5;
+    private int abilityLock$selectedGridWidth = 5;
+
+    @Unique
+    private int abilityLock$selectedGridHeight = 5;
 
     @ModifyVariable(method = "<init>", at = @At("TAIL"), name = "helper")
     private GridLayout.RowHelper abilityLock$appendWidgets(GridLayout.RowHelper helper) {
@@ -67,12 +70,19 @@ public abstract class CreateWorldScreenGameTabMixin implements AbilityLockGameTa
 
         helper.addChild(presetRow);
 
-        CycleButton<Integer> gridSizeButton = CycleButton.builder(
-                        (size) -> Component.literal(size + "x" + size), this.abilityLock$selectedGridSize)
-                .withValues(abilityLock$GRID_SIZES)
-                .create(0, 0, 210, 20, Component.literal("AbilityLock Task Grid"),
-                        (button, value) -> this.abilityLock$selectedGridSize = value);
-        helper.addChild(gridSizeButton);
+        CycleButton<Integer> gridWidthButton = CycleButton.builder(
+                        (size) -> Component.literal(size + " wide"), this.abilityLock$selectedGridWidth)
+                .withValues(abilityLock$GRID_DIMENSIONS)
+                .create(0, 0, 210, 20, Component.literal("AbilityLock Grid Width"),
+                        (button, value) -> this.abilityLock$selectedGridWidth = value);
+        helper.addChild(gridWidthButton);
+
+        CycleButton<Integer> gridHeightButton = CycleButton.builder(
+                        (size) -> Component.literal(size + " tall"), this.abilityLock$selectedGridHeight)
+                .withValues(abilityLock$GRID_DIMENSIONS)
+                .create(0, 0, 210, 20, Component.literal("AbilityLock Grid Height"),
+                        (button, value) -> this.abilityLock$selectedGridHeight = value);
+        helper.addChild(gridHeightButton);
 
         return helper;
     }
@@ -119,7 +129,12 @@ public abstract class CreateWorldScreenGameTabMixin implements AbilityLockGameTa
     }
 
     @Override
-    public int abilityLock$getSelectedGridSize() {
-        return this.abilityLock$selectedGridSize;
+    public int abilityLock$getSelectedGridWidth() {
+        return this.abilityLock$selectedGridWidth;
+    }
+
+    @Override
+    public int abilityLock$getSelectedGridHeight() {
+        return this.abilityLock$selectedGridHeight;
     }
 }

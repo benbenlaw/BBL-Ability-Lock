@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:entity_kill_task",
+  "display_name": "Kill a Spider",
+  "required_abilities": [
+    "abilitylock:hostile_overworld_mob_damage"
+  ],
+  "targets": [
+    "minecraft:spider",
+    "minecraft:cave_spider"
+  ]
+}

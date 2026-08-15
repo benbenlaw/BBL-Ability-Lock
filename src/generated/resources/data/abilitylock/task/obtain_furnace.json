@@ -1,0 +1,13 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Furnace",
+  "parents": [
+    "abilitylock:obtain_cobblestone"
+  ],
+  "required_abilities": [
+    "abilitylock:break_stone"
+  ],
+  "targets": [
+    "minecraft:furnace"
+  ]
+}

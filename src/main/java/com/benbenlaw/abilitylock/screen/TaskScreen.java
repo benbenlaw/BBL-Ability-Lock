@@ -36,7 +36,7 @@ public class TaskScreen extends Screen {
     private static final double ZOOM_STEP = 0.1;
 
     private final List<TaskType> visibleTasks = new ArrayList<>();
-    private int gridSize = 1;
+    private int gridWidth = 1;
 
     private static double scale = 1.0;
 
@@ -71,7 +71,10 @@ public class TaskScreen extends Screen {
             }
         }
 
-        gridSize = Math.max(1, (int) Math.ceil(Math.sqrt(Math.max(visibleTasks.size(), 1))));
+        int configuredWidth = data.gridWidth();
+        gridWidth = configuredWidth > 0
+                ? configuredWidth
+                : Math.max(1, (int) Math.ceil(Math.sqrt(Math.max(visibleTasks.size(), 1))));
     }
 
     @Override
@@ -83,7 +86,7 @@ public class TaskScreen extends Screen {
         if (this.minecraft == null || this.minecraft.player == null) return;
         TaskProgressData data = this.minecraft.player.getData(AbilityLockAttachments.TASK_PROGRESS);
 
-        int totalWidth = gridSize * (BOX_WIDTH + COL_GAP) - COL_GAP;
+        int totalWidth = gridWidth * (BOX_WIDTH + COL_GAP) - COL_GAP;
         int startX = (this.width - totalWidth) / 2;
 
         for (int i = 0; i < visibleTasks.size(); i++) {
@@ -146,8 +149,8 @@ public class TaskScreen extends Screen {
     }
 
     private int[] boxTopLeft(int index, int startX) {
-        int col = index % gridSize;
-        int row = index / gridSize;
+        int col = index % gridWidth;
+        int row = index / gridWidth;
         double worldX = startX + col * (BOX_WIDTH + COL_GAP);
         double worldY = TOP_MARGIN + row * (BOX_HEIGHT + ROW_GAP);
         int x = (int) Math.round(worldX * scale + offsetX);

@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_break_ability",
+  "display_name": "Breaking Logs",
+  "parents": [
+    "abilitylock:inventory"
+  ],
+  "targets": [
+    "#minecraft:logs"
+  ]
+}

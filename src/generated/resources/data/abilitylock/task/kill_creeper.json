@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:entity_kill_task",
+  "display_name": "Kill a Creeper",
+  "required_abilities": [
+    "abilitylock:hostile_overworld_mob_damage"
+  ],
+  "targets": [
+    "minecraft:creeper"
+  ]
+}

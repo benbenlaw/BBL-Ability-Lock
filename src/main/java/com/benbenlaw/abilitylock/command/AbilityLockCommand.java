@@ -72,6 +72,19 @@ public class AbilityLockCommand {
                                                 .executes(AbilityLockCommand::listOther)
                                         )
                                 )
+                                .then(Commands.literal("check")
+                                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                        .then(Commands.argument("ability", StringArgumentType.greedyString())
+                                                .suggests(ABILITY_SUGGESTIONS)
+                                                .executes(AbilityLockCommand::checkAbilitySelf)
+                                        )
+                                        .then(Commands.argument("target", StringArgumentType.word())
+                                                .then(Commands.argument("ability", StringArgumentType.greedyString())
+                                                        .suggests(ABILITY_SUGGESTIONS)
+                                                        .executes(AbilityLockCommand::checkAbilityOther)
+                                                )
+                                        )
+                                )
                         )
                         .then(Commands.literal("task")
                                 .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
@@ -313,6 +326,54 @@ public class AbilityLockCommand {
     private static String displayNameOf(Identifier id) {
         AbilityData data = AbilityLoader.DATA.get(id);
         return data != null ? data.displayName() : id.toString();
+    }
+
+    private static int checkAbilitySelf(CommandContext<CommandSourceStack> ctx) {
+        ServerPlayer player = getSelfOrFail(ctx);
+        if (player == null) return 0;
+        return doCheckAbility(ctx, player);
+    }
+
+    private static int checkAbilityOther(CommandContext<CommandSourceStack> ctx) {
+        String targetName = StringArgumentType.getString(ctx, "target");
+        ServerPlayer player = ctx.getSource().getServer().getPlayerList().getPlayerByName(targetName);
+        if (player == null) {
+            ctx.getSource().sendFailure(Component.literal("Player '" + targetName + "' not found or not online."));
+            return 0;
+        }
+        return doCheckAbility(ctx, player);
+    }
+
+    private static int doCheckAbility(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
+        Identifier abilityId = getAbilityId(ctx);
+        if (abilityId == null) return 0;
+
+        AbilityData abilityData = AbilityLoader.DATA.get(abilityId);
+        if (abilityData == null) {
+            ctx.getSource().sendFailure(Component.literal("Unknown ability: " + abilityId));
+            return 0;
+        }
+
+        Identifier broken = AbilityChecker.findUnreachableAncestor(player, abilityId);
+
+        if (broken == null) {
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    "'" + abilityData.displayName() + "' (" + abilityId + ") CAN be unlocked during "
+                            + player.getName().getString() + "'s current run."), false);
+            return 1;
+        }
+
+        AbilityData brokenData = AbilityLoader.DATA.get(broken);
+        String reason = brokenData == null
+                ? "'" + broken + "' does not exist (broken ability id)"
+                : "'" + brokenData.displayName() + "' (" + broken + ") is excluded by the active preset";
+
+        String location = broken.equals(abilityId) ? "" : " (blocked via ancestor)";
+
+        ctx.getSource().sendFailure(Component.literal(
+                "'" + abilityData.displayName() + "' (" + abilityId + ") CANNOT be unlocked during "
+                        + player.getName().getString() + "'s current run" + location + ": " + reason));
+        return 0;
     }
 
     private static int completeTaskSelf(CommandContext<CommandSourceStack> ctx) {

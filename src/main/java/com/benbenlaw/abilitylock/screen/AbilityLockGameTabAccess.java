@@ -9,5 +9,7 @@ public interface AbilityLockGameTabAccess {
     @Nullable
     Identifier abilityLock$getSelectedPreset();
 
-    int abilityLock$getSelectedGridSize();
+    int abilityLock$getSelectedGridWidth();
+
+    int abilityLock$getSelectedGridHeight();
 }

@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain a Crafting Table",
+  "required_abilities": [
+    "abilitylock:inventory",
+    "abilitylock:break_logs"
+  ],
+  "targets": [
+    "minecraft:crafting_table"
+  ]
+}

@@ -86,8 +86,9 @@ public class ServerEvents {
             player.setData(AbilityLockAttachments.ABILITY_LOCK, data);
         }
 
-        int gridSize = pending != null ? pending.gridSize() : PendingAbilityLockWorldSettings.DEFAULT_GRID_SIZE;
-        TaskManager.ensureGridAssigned(player, gridSize, data.unlockedAbilities());
+        int gridWidth = pending != null ? pending.gridWidth() : PendingAbilityLockWorldSettings.DEFAULT_GRID_WIDTH;
+        int gridHeight = pending != null ? pending.gridHeight() : PendingAbilityLockWorldSettings.DEFAULT_GRID_HEIGHT;
+        TaskManager.ensureGridAssigned(player, gridWidth, gridHeight, data.unlockedAbilities());
 
         TaskProgressData taskData = player.getData(AbilityLockAttachments.TASK_PROGRESS);
         PacketDistributor.sendToPlayer(player, new SyncTaskProgressPacket(taskData));

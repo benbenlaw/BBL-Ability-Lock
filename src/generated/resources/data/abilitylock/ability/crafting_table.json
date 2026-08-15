@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_interact_ability",
+  "display_name": "Crafting Table",
+  "parents": [
+    "abilitylock:break_logs"
+  ],
+  "targets": [
+    "#c:player_workstations/crafting_tables"
+  ]
+}

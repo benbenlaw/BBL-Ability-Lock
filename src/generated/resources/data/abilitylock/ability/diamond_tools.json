@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:crafting_ability",
+  "display_name": "Diamond Tools",
+  "parents": [
+    "abilitylock:gold_tools"
+  ],
+  "targets": [
+    "minecraft:diamond_pickaxe",
+    "minecraft:diamond_axe",
+    "minecraft:diamond_shovel",
+    "minecraft:diamond_hoe",
+    "minecraft:diamond_sword"
+  ]
+}

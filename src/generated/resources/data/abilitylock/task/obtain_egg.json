@@ -1,0 +1,7 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Chicken Egg",
+  "targets": [
+    "#minecraft:eggs"
+  ]
+}

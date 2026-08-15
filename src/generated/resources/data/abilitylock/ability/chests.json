@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:block_interact_ability",
+  "display_name": "Chests",
+  "parents": [
+    "abilitylock:crafting_table"
+  ],
+  "targets": [
+    "#c:chests"
+  ]
+}

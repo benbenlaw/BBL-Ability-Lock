@@ -1,6 +1,6 @@
 {
   "display_name": "Standard",
   "starting_abilities": [
-    "abilitylock:movement/forward"
+    "abilitylock:forward"
   ]
 }

@@ -1,0 +1,14 @@
+{
+  "type": "abilitylock:entity_kill_task",
+  "display_name": "Kill a Fish",
+  "required_abilities": [
+    "abilitylock:passive_aquatic_mob_damage",
+    "abilitylock:jumping"
+  ],
+  "targets": [
+    "minecraft:salmon",
+    "minecraft:cod",
+    "minecraft:tropical_fish",
+    "minecraft:pufferfish"
+  ]
+}
