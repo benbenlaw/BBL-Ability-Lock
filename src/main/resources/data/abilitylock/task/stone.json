@@ -1,0 +1,7 @@
+{
+  "display_name": "Mine Stone",
+  "type": "abilitylock:block_break_task",
+  "required_abilities": ["abilitylock:stone"],
+  "targets": ["#c:stones"],
+  "target": 1
+}

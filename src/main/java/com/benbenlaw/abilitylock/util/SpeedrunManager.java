@@ -4,7 +4,7 @@ import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.network.packet.StopSpeedrunTimerPacket;
-import com.benbenlaw.abilitylock.task.Task;
+import com.benbenlaw.abilitylock.task.TaskType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -19,14 +19,14 @@ public class SpeedrunManager {
 
     private static final Map<UUID, String> PENDING_FINAL_TASK = new LinkedHashMap<>();
 
-    public static void onSpeedrunFinished(ServerPlayer player, Task finalTask) {
-        PENDING_FINAL_TASK.put(player.getUUID(), finalTask.displayName());
+    public static void onSpeedrunFinished(ServerPlayer player, TaskType finalTask) {
+        PENDING_FINAL_TASK.put(player.getUUID(), finalTask.getData().displayName());
         PacketDistributor.sendToPlayer(player, new StopSpeedrunTimerPacket());
     }
 
     public static void onTimeReceived(ServerPlayer player, long elapsedMillis) {
         String finalTaskName = PENDING_FINAL_TASK.remove(player.getUUID());
-        if (finalTaskName == null) return; // stale or unexpected packet
+        if (finalTaskName == null) return;
 
         String formattedTime = SpeedrunTimeUtil.format(elapsedMillis);
         List<String> unlockedNames = unlockedAbilityNames(player);

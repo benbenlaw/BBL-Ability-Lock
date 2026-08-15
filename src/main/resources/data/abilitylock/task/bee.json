@@ -1,0 +1,7 @@
+{
+  "display_name": "Kill a Bee",
+  "type": "abilitylock:entity_kill_task",
+  "parents": ["abilitylock:kill_a_zombie"],
+  "required_abilities": ["abilitylock:passive_kill"],
+  "targets": ["minecraft:bee"]
+}

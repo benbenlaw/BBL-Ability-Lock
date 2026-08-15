@@ -19,12 +19,12 @@ import java.util.concurrent.CompletableFuture;
 
 public class AbilityProvider implements DataProvider {
 
-    private static final String INTERACTIONS = "interactions";
-    private static final String BREAKING = "breaking";
-    private static final String DIMENSIONS = "dimensions";
-    private static final String COMBAT = "combat";
-    private static final String CRAFTING = "crafting";
-    private static final String MOVEMENT = "movement";
+    public static final String INTERACTIONS = "interactions";
+    public static final String BREAKING = "breaking";
+    public static final String DIMENSIONS = "dimensions";
+    public static final String COMBAT = "combat";
+    public static final String CRAFTING = "crafting";
+    public static final String MOVEMENT = "movement";
 
     private final PackOutput.PathProvider pathProvider;
     private final CompletableFuture<HolderLookup.Provider> lookupProvider;

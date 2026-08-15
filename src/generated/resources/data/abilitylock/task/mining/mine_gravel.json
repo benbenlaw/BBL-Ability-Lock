@@ -1,0 +1,8 @@
+{
+  "type": "abilitylock:block_break_task",
+  "display_name": "Mine Gravel",
+  "target": 8,
+  "targets": [
+    "#c:gravels"
+  ]
+}

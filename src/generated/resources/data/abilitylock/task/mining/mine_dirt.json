@@ -1,0 +1,9 @@
+{
+  "type": "abilitylock:block_break_task",
+  "display_name": "Mine Dirt",
+  "target": 8,
+  "targets": [
+    "minecraft:grass",
+    "#minecraft:dirt"
+  ]
+}

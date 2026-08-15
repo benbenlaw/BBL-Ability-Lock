@@ -3,6 +3,7 @@ package com.benbenlaw.abilitylock.data;
 import com.benbenlaw.abilitylock.AbilityLock;
 import com.benbenlaw.abilitylock.data.custom.AbilityProvider;
 import com.benbenlaw.abilitylock.data.custom.PresetProvider;
+import com.benbenlaw.abilitylock.data.custom.TaskProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
@@ -27,6 +28,7 @@ public class ALDataGenerators {
         //Custom
         generator.addProvider(true, new AbilityProvider(packOutput, lookupProvider));
         generator.addProvider(true, new PresetProvider(packOutput, lookupProvider));
+        generator.addProvider(true, new TaskProvider(packOutput, lookupProvider));
 
     }
 }

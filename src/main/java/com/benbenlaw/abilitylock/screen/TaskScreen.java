@@ -1,13 +1,12 @@
 package com.benbenlaw.abilitylock.screen;
 
-import com.benbenlaw.abilitylock.ability.Ability;
 import com.benbenlaw.abilitylock.ability.AbilityChecker;
 import com.benbenlaw.abilitylock.ability.AbilityData;
 import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.TaskProgressData;
-import com.benbenlaw.abilitylock.task.Task;
-import com.benbenlaw.abilitylock.task.TaskRegistry;
+import com.benbenlaw.abilitylock.task.TaskLoader;
+import com.benbenlaw.abilitylock.task.TaskType;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
@@ -36,7 +35,7 @@ public class TaskScreen extends Screen {
     private static final double MAX_SCALE = 2.5;
     private static final double ZOOM_STEP = 0.1;
 
-    private final List<Task> visibleTasks = new ArrayList<>();
+    private final List<TaskType> visibleTasks = new ArrayList<>();
     private int gridSize = 1;
 
     private static double scale = 1.0;
@@ -65,8 +64,11 @@ public class TaskScreen extends Screen {
         if (this.minecraft == null || this.minecraft.player == null) return;
         TaskProgressData data = this.minecraft.player.getData(AbilityLockAttachments.TASK_PROGRESS);
 
-        for (String taskId : data.gridTaskIds()) {
-            TaskRegistry.get(taskId).ifPresent(visibleTasks::add);
+        for (Identifier taskId : data.gridTaskIds()) {
+            TaskType task = TaskLoader.TASKS.get(taskId);
+            if (task != null) {
+                visibleTasks.add(task);
+            }
         }
 
         gridSize = Math.max(1, (int) Math.ceil(Math.sqrt(Math.max(visibleTasks.size(), 1))));
@@ -88,7 +90,7 @@ public class TaskScreen extends Screen {
             drawNode(graphics, visibleTasks.get(i), i, data, this.minecraft.player, startX, mouseX, mouseY);
         }
 
-        Task hoveredTask = null;
+        TaskType hoveredTask = null;
         int boxW = (int) Math.round(BOX_WIDTH * scale);
         int boxH = (int) Math.round(BOX_HEIGHT * scale);
         for (int i = 0; i < visibleTasks.size(); i++) {
@@ -100,13 +102,13 @@ public class TaskScreen extends Screen {
 
         if (hoveredTask != null) {
             List<Component> tooltip = new ArrayList<>();
-            tooltip.add(Component.literal(hoveredTask.displayName()));
-            boolean hoveredComplete = data.isComplete(hoveredTask.id());
+            tooltip.add(Component.literal(hoveredTask.getData().displayName()));
+            boolean hoveredComplete = data.isComplete(hoveredTask.getId());
             boolean hoveredAttemptable = hoveredComplete || canAttempt(this.minecraft.player, hoveredTask);
 
             if (!hoveredAttemptable) {
                 tooltip.add(Component.literal("Locked - requires ability:"));
-                for (Identifier abilityId : hoveredTask.requiredAbilities()) {
+                for (Identifier abilityId : hoveredTask.getRequiredAbilities()) {
                     if (!AbilityChecker.isUnlocked(this.minecraft.player, abilityId)) {
                         AbilityData abilityData = AbilityLoader.DATA.get(abilityId);
                         String label = abilityData != null ? abilityData.displayName() : abilityId.toString();
@@ -115,9 +117,9 @@ public class TaskScreen extends Screen {
                 }
             } else {
                 tooltip.add(Component.literal(hoveredComplete ? "Complete" : "In Progress"));
-                int hoveredTarget = hoveredTask.criterion().target();
+                int hoveredTarget = hoveredTask.getTarget();
                 if (hoveredTarget > 1) {
-                    int hoveredProgress = Math.min(data.progressOf(hoveredTask.id()), hoveredTarget);
+                    int hoveredProgress = Math.min(data.progressOf(hoveredTask.getId()), hoveredTarget);
                     tooltip.add(Component.literal(hoveredProgress + " / " + hoveredTarget));
                 }
             }
@@ -135,9 +137,9 @@ public class TaskScreen extends Screen {
         }
     }
 
-    private boolean canAttempt(Player player, Task task) {
+    private boolean canAttempt(Player player, TaskType task) {
         if (!task.hasRequiredAbilities()) return true;
-        for (Identifier abilityId : task.requiredAbilities()) {
+        for (Identifier abilityId : task.getRequiredAbilities()) {
             if (!AbilityChecker.isUnlocked(player, abilityId)) return false;
         }
         return true;
@@ -153,13 +155,13 @@ public class TaskScreen extends Screen {
         return new int[]{x, y};
     }
 
-    private void drawNode(GuiGraphicsExtractor graphics, Task task, int index, TaskProgressData data, Player player, int startX, int mouseX, int mouseY) {
+    private void drawNode(GuiGraphicsExtractor graphics, TaskType task, int index, TaskProgressData data, Player player, int startX, int mouseX, int mouseY) {
         int[] pos = boxTopLeft(index, startX);
         int x = pos[0], y = pos[1];
         int boxW = (int) Math.round(BOX_WIDTH * scale);
         int boxH = (int) Math.round(BOX_HEIGHT * scale);
 
-        boolean complete = data.isComplete(task.id());
+        boolean complete = data.isComplete(task.getId());
         boolean attemptable = complete || canAttempt(player, task);
         boolean hovered = mouseX >= x && mouseX <= x + boxW && mouseY >= y && mouseY <= y + boxH;
 
@@ -184,11 +186,11 @@ public class TaskScreen extends Screen {
 
         int lineHeight = this.font.lineHeight;
         int textColor = complete ? 0xFFFFFFFF : (attemptable ? 0xFFAAAAAA : 0xFFD8A79E);
-        int target = task.criterion().target();
+        int target = task.getTarget();
 
         if (!attemptable) {
             int textY = y + (boxH - lineHeight) / 2;
-            drawScrollingText(graphics, Component.nullToEmpty(task.displayName()), x, y, boxW, boxH, textY, textColor);
+            drawScrollingText(graphics, Component.nullToEmpty(task.getData().displayName()), x, y, boxW, boxH, textY, textColor);
             return;
         }
 
@@ -199,14 +201,14 @@ public class TaskScreen extends Screen {
             int progressY = nameY + lineHeight + lineGap;
             int nameOverflow = Math.max(0, y - nameY);
 
-            drawScrollingText(graphics, Component.nullToEmpty(task.displayName()), x, y, boxW, boxH, nameY, textColor, nameOverflow);
+            drawScrollingText(graphics, Component.nullToEmpty(task.getData().displayName()), x, y, boxW, boxH, nameY, textColor, nameOverflow);
 
-            int progress = Math.min(data.progressOf(task.id()), target);
+            int progress = Math.min(data.progressOf(task.getId()), target);
             Component progressText = Component.literal(progress + " / " + target);
             graphics.centeredText(this.font, progressText, x + boxW / 2, progressY, textColor);
         } else {
             int textY = y + (boxH - lineHeight) / 2;
-            drawScrollingText(graphics, Component.nullToEmpty(task.displayName()), x, y, boxW, boxH, textY, textColor);
+            drawScrollingText(graphics, Component.nullToEmpty(task.getData().displayName()), x, y, boxW, boxH, textY, textColor);
         }
     }
 

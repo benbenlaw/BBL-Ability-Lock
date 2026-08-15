@@ -13,6 +13,7 @@ import com.benbenlaw.abilitylock.network.packet.SyncTaskProgressPacket;
 import com.benbenlaw.abilitylock.presets.PresetData;
 import com.benbenlaw.abilitylock.presets.PresetLoader;
 import com.benbenlaw.abilitylock.screen.PendingAbilityLockWorldSettings;
+import com.benbenlaw.abilitylock.task.TaskLoader;
 import com.benbenlaw.abilitylock.task.TaskManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -36,6 +37,7 @@ public class ServerEvents {
     public static void onAddReloadListener(AddServerReloadListenersEvent event) {
         event.addListener(AbilityLock.identifier("ability"), new AbilityLoader());
         event.addListener(AbilityLock.identifier("preset"), new PresetLoader());
+        event.addListener(AbilityLock.identifier("task"), new TaskLoader());
     }
 
     @SubscribeEvent

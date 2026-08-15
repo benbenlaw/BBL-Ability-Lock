@@ -1,6 +1,5 @@
 package com.benbenlaw.abilitylock.task;
 
-import com.benbenlaw.abilitylock.task.criteria.*;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.EntityType;
@@ -13,15 +12,6 @@ import java.util.Set;
 public class Tasks {
 
     /*
-    public static final Task DIRT = TaskRegistry.register("dirt", "Get Dirt",
-            new ItemObtainCriterion(ItemTags.DIRT, 8));
-
-    public static final Task SAND = TaskRegistry.register("sand", "Get Sand",
-            new ItemObtainCriterion(ItemTags.SAND, 8));
-
-    public static final Task GRAVEL = TaskRegistry.register("gravel", "Get Gravel",
-            new ItemObtainCriterion(Tags.Items.GRAVELS, 8));
-
     public static final Task KILL_BEE = TaskRegistry.register("kill_bee", "Kill a Bee",
             new EntitySpecificKillCriterion(EntityType.BEE, 1), Set.of(Abilities.PASSIVE_KILL.id()));
 
@@ -43,8 +33,7 @@ public class Tasks {
     public static final Task KILL_SQUID = TaskRegistry.register("kill_squid", "Kill a Squid",
             new EntitySpecificKillCriterion(EntityType.SQUID, 1), Set.of(Abilities.PASSIVE_KILL.id()));
 
-    public static final Task EGG = TaskRegistry.register("egg", "Get an Egg",
-            new ItemStackObtainCriterion(new ItemStackTemplate(Items.EGG), 1));
+
 
     public static final Task CRAFTING_TABLE = TaskRegistry.register("crafting_table", "Get a Crafting Table",
             new ItemObtainCriterion(Tags.Items.PLAYER_WORKSTATIONS_CRAFTING_TABLES, 1), Set.of(Abilities.LOG.id()));

@@ -1,0 +1,7 @@
+{
+  "display_name": "Obtain Logs",
+  "type": "abilitylock:item_obtain_task",
+  "required_abilities": ["abilitylock:log"],
+  "targets": ["#minecraft:logs"],
+  "target": 8
+}

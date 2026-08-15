@@ -5,6 +5,7 @@ import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.config.ClientConfig;
 import com.benbenlaw.abilitylock.config.ServerConfig;
 import com.benbenlaw.abilitylock.network.AbilityLockNetworking;
+import com.benbenlaw.abilitylock.task.TaskTypes;
 import com.benbenlaw.abilitylock.task.Tasks;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
@@ -24,6 +25,7 @@ public class AbilityLock {
     public AbilityLock(final IEventBus eventBus, final ModContainer modContainer) {
 
         AbilityTypes.init();
+        TaskTypes.init();
 
 
         AbilityLockAttachments.ATTACHMENT_TYPES.register(eventBus);

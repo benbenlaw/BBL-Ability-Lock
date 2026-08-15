@@ -6,9 +6,9 @@ import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.network.packet.SyncAbilityLockPacket;
-import com.benbenlaw.abilitylock.task.Task;
+import com.benbenlaw.abilitylock.task.TaskLoader;
 import com.benbenlaw.abilitylock.task.TaskManager;
-import com.benbenlaw.abilitylock.task.TaskRegistry;
+import com.benbenlaw.abilitylock.task.TaskType;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -31,7 +31,8 @@ public class AbilityLockCommand {
                     AbilityLoader.DATA.keySet().stream().map(Identifier::toString).toList(), builder);
 
     private static final SuggestionProvider<CommandSourceStack> TASK_SUGGESTIONS = (ctx, builder) ->
-            SharedSuggestionProvider.suggest(TaskRegistry.all().keySet(), builder);
+            SharedSuggestionProvider.suggest(
+                    TaskLoader.TASKS.keySet().stream().map(Identifier::toString).toList(), builder);
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
@@ -75,10 +76,13 @@ public class AbilityLockCommand {
                         .then(Commands.literal("task")
                                 .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .then(Commands.literal("complete")
-                                        .then(Commands.argument("task", StringArgumentType.word())
+                                        .then(Commands.argument("task", StringArgumentType.greedyString())
                                                 .suggests(TASK_SUGGESTIONS)
                                                 .executes(AbilityLockCommand::completeTaskSelf)
-                                                .then(Commands.argument("target", StringArgumentType.word())
+                                        )
+                                        .then(Commands.argument("target", StringArgumentType.word())
+                                                .then(Commands.argument("task", StringArgumentType.greedyString())
+                                                        .suggests(TASK_SUGGESTIONS)
                                                         .executes(AbilityLockCommand::completeTaskOther)
                                                 )
                                         )
@@ -90,10 +94,13 @@ public class AbilityLockCommand {
                                                         .executes(AbilityLockCommand::resetAllOther)
                                                 )
                                         )
-                                        .then(Commands.argument("task", StringArgumentType.word())
+                                        .then(Commands.argument("task", StringArgumentType.greedyString())
                                                 .suggests(TASK_SUGGESTIONS)
                                                 .executes(AbilityLockCommand::resetOneSelf)
-                                                .then(Commands.argument("target", StringArgumentType.word())
+                                        )
+                                        .then(Commands.argument("target", StringArgumentType.word())
+                                                .then(Commands.argument("task", StringArgumentType.greedyString())
+                                                        .suggests(TASK_SUGGESTIONS)
                                                         .executes(AbilityLockCommand::resetOneOther)
                                                 )
                                         )
@@ -108,6 +115,16 @@ public class AbilityLockCommand {
             return Identifier.parse(raw);
         } catch (Exception e) {
             ctx.getSource().sendFailure(Component.literal("Invalid ability id: " + raw));
+            return null;
+        }
+    }
+
+    private static @Nullable Identifier getTaskId(CommandContext<CommandSourceStack> ctx) {
+        String raw = StringArgumentType.getString(ctx, "task");
+        try {
+            return Identifier.parse(raw);
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Invalid task id: " + raw));
             return null;
         }
     }
@@ -201,6 +218,7 @@ public class AbilityLockCommand {
         return 1;
     }
 
+    /** Cascades through every ability that lists id as ANY of its parents. */
     private static void removeCascade(Identifier id, Set<Identifier> unlocked, Set<Identifier> removed) {
         if (!unlocked.remove(id)) return;
         removed.add(id);
@@ -314,18 +332,19 @@ public class AbilityLockCommand {
     }
 
     private static int doCompleteTask(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
-        String taskId = StringArgumentType.getString(ctx, "task");
-        Optional<Task> taskOpt = TaskRegistry.get(taskId);
-        if (taskOpt.isEmpty()) {
+        Identifier taskId = getTaskId(ctx);
+        if (taskId == null) return 0;
+
+        TaskType task = TaskLoader.TASKS.get(taskId);
+        if (task == null) {
             ctx.getSource().sendFailure(Component.literal("Unknown task: " + taskId));
             return 0;
         }
 
-        Task task = taskOpt.get();
         TaskManager.forceComplete(player, task);
 
         ctx.getSource().sendSuccess(() -> Component.literal(
-                "Marked '" + task.displayName() + "' complete for " + player.getName().getString()), true);
+                "Marked '" + task.getData().displayName() + "' complete for " + player.getName().getString()), true);
         return 1;
     }
 
@@ -369,16 +388,18 @@ public class AbilityLockCommand {
     }
 
     private static int doResetOne(CommandContext<CommandSourceStack> ctx, ServerPlayer player) {
-        String taskId = StringArgumentType.getString(ctx, "task");
-        Optional<Task> taskOpt = TaskRegistry.get(taskId);
-        if (taskOpt.isEmpty()) {
+        Identifier taskId = getTaskId(ctx);
+        if (taskId == null) return 0;
+
+        TaskType task = TaskLoader.TASKS.get(taskId);
+        if (task == null) {
             ctx.getSource().sendFailure(Component.literal("Unknown task: " + taskId));
             return 0;
         }
 
         TaskManager.resetOne(player, taskId);
         ctx.getSource().sendSuccess(() -> Component.literal(
-                "Reset task '" + taskOpt.get().displayName() + "' for " + player.getName().getString()), true);
+                "Reset task '" + task.getData().displayName() + "' for " + player.getName().getString()), true);
         return 1;
     }
 }
