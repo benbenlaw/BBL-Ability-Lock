@@ -170,6 +170,7 @@ public class AbilityLockScreen extends Screen {
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         super.extractRenderState(graphics, mouseX, mouseY, a);
 
+        // Title bar stays fixed size, doesn't zoom with the tree.
         graphics.centeredText(this.font, this.title, this.width / 2, 12, 0xFFFFFFFF);
 
         if (this.minecraft.player == null) return;
@@ -224,6 +225,7 @@ public class AbilityLockScreen extends Screen {
                 tooltipComponents.add(ClientTooltipComponent.create(line.getVisualOrderText()));
             }
 
+            // Tooltip text isn't scaled - stays normal size regardless of tree zoom, same as vanilla tooltips.
             graphics.tooltip(this.font, tooltipComponents, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null);
         }
     }
@@ -273,7 +275,10 @@ public class AbilityLockScreen extends Screen {
         graphics.fill(x + boxW - 1, y, x + boxW, y + boxH, border);
 
         int textColor = unlocked ? 0xFFFFFFFF : (reachableThisRun ? 0xFFAAAAAA : 0xFF777777);
-        int textY = y + (boxH - this.font.lineHeight) / 2;
+
+        // Scaled to screen space now, matching boxH, so vertical centering stays correct at any zoom level.
+        int lineHeight = (int) Math.round(this.font.lineHeight * scale);
+        int textY = y + (boxH - lineHeight) / 2;
         drawScrollingText(graphics, Component.translatable(abilityData.displayName()), x, y, boxW, boxH, textY, textColor);
     }
 
@@ -286,12 +291,18 @@ public class AbilityLockScreen extends Screen {
 
     private void drawScrollingText(GuiGraphicsExtractor graphics, Component text, int boxX, int boxY, int boxWidth, int boxHeight, int textY, int color) {
         int textWidth = this.font.width(text);
-        int available = boxWidth - TEXT_PADDING * 2;
+        int localBoxWidth = (int) Math.round(boxWidth / scale);
+        int available = localBoxWidth - TEXT_PADDING * 2;
 
         graphics.enableScissor(boxX, boxY, boxX + boxWidth, boxY + boxHeight);
 
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((float) boxX, (float) textY);
+        graphics.pose().scale((float) scale, (float) scale);
+
         if (textWidth <= available) {
-            graphics.centeredText(this.font, text, boxX + boxWidth / 2, textY, color);
+            graphics.centeredText(this.font, text, localBoxWidth / 2, 0, color);
+            graphics.pose().popMatrix();
             graphics.disableScissor();
             return;
         }
@@ -313,9 +324,10 @@ public class AbilityLockScreen extends Screen {
             scrollX = maxScroll - (int) (backT * SCROLL_SPEED_PX_PER_MS);
         }
 
-        int textX = boxX + TEXT_PADDING - scrollX;
-        graphics.text(this.font, text, textX, textY, color);
+        int localTextX = TEXT_PADDING - scrollX;
+        graphics.text(this.font, text, localTextX, 0, color);
 
+        graphics.pose().popMatrix();
         graphics.disableScissor();
     }
 

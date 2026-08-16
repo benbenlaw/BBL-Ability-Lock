@@ -1,0 +1,13 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Saddle",
+  "parents": [
+    "abilitylock:obtain_leather"
+  ],
+  "required_abilities": [
+    "abilitylock:passive_mob_damage"
+  ],
+  "targets": [
+    "minecraft:saddle"
+  ]
+}

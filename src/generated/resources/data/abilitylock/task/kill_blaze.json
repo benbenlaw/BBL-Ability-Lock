@@ -2,7 +2,7 @@
   "type": "abilitylock:entity_kill_task",
   "display_name": "Kill a Blaze",
   "required_abilities": [
-    "abilitylock:hostile_nether_mob_damage",
+    "abilitylock:nether_mob_damage",
     "abilitylock:dimension_nether"
   ],
   "targets": [

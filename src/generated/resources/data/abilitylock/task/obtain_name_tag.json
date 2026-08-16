@@ -1,0 +1,13 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Saddle",
+  "parents": [
+    "abilitylock:obtain_sugar_cane"
+  ],
+  "required_abilities": [
+    "abilitylock:passive_mob_damage"
+  ],
+  "targets": [
+    "minecraft:name_tag"
+  ]
+}

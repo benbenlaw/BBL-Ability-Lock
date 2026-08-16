@@ -81,6 +81,7 @@ public class TaskScreen extends Screen {
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         super.extractRenderState(graphics, mouseX, mouseY, a);
 
+        // Title bar stays fixed size, doesn't zoom with the grid.
         graphics.centeredText(this.font, this.title, this.width / 2, 12, 0xFFFFFFFF);
 
         if (this.minecraft == null || this.minecraft.player == null) return;
@@ -132,6 +133,7 @@ public class TaskScreen extends Screen {
                 tooltipComponents.add(ClientTooltipComponent.create(line.getVisualOrderText()));
             }
 
+            // Tooltip text isn't scaled - stays normal size regardless of grid zoom, same as vanilla tooltips.
             graphics.tooltip(this.font, tooltipComponents, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null);
         }
 
@@ -187,7 +189,7 @@ public class TaskScreen extends Screen {
         graphics.fill(x, y, x + 1, y + boxH, border);
         graphics.fill(x + boxW - 1, y, x + boxW, y + boxH, border);
 
-        int lineHeight = this.font.lineHeight;
+        int lineHeight = (int) Math.round(this.font.lineHeight * scale);
         int textColor = complete ? 0xFFFFFFFF : (attemptable ? 0xFFAAAAAA : 0xFFD8A79E);
         int target = task.getTarget();
 
@@ -198,7 +200,7 @@ public class TaskScreen extends Screen {
         }
 
         if (target > 1) {
-            int lineGap = 3;
+            int lineGap = (int) Math.round(3 * scale);
             int totalTextHeight = lineHeight * 2 + lineGap;
             int nameY = y + (boxH - totalTextHeight) / 2;
             int progressY = nameY + lineHeight + lineGap;
@@ -208,11 +210,19 @@ public class TaskScreen extends Screen {
 
             int progress = Math.min(data.progressOf(task.getId()), target);
             Component progressText = Component.literal(progress + " / " + target);
-            graphics.centeredText(this.font, progressText, x + boxW / 2, progressY, textColor);
+            drawScaledCenteredText(graphics, progressText, x + boxW / 2, progressY, textColor);
         } else {
             int textY = y + (boxH - lineHeight) / 2;
             drawScrollingText(graphics, Component.nullToEmpty(task.getData().displayName()), x, y, boxW, boxH, textY, textColor);
         }
+    }
+
+    private void drawScaledCenteredText(GuiGraphicsExtractor graphics, Component text, int screenCenterX, int screenY, int color) {
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((float) screenCenterX, (float) screenY);
+        graphics.pose().scale((float) scale, (float) scale);
+        graphics.centeredText(this.font, text, 0, 0, color);
+        graphics.pose().popMatrix();
     }
 
     private void drawScrollingText(GuiGraphicsExtractor graphics, Component text, int boxX, int boxY, int boxWidth, int boxHeight, int textY, int color) {
@@ -221,12 +231,18 @@ public class TaskScreen extends Screen {
 
     private void drawScrollingText(GuiGraphicsExtractor graphics, Component text, int boxX, int boxY, int boxWidth, int boxHeight, int textY, int color, int topOverflow) {
         int textWidth = this.font.width(text);
-        int available = boxWidth - TEXT_PADDING * 2;
+        int localBoxWidth = (int) Math.round(boxWidth / scale);
+        int available = localBoxWidth - TEXT_PADDING * 2;
 
         graphics.enableScissor(boxX, boxY - topOverflow, boxX + boxWidth, boxY + boxHeight);
 
+        graphics.pose().pushMatrix();
+        graphics.pose().translate((float) boxX, (float) textY);
+        graphics.pose().scale((float) scale, (float) scale);
+
         if (textWidth <= available) {
-            graphics.centeredText(this.font, text, boxX + boxWidth / 2, textY, color);
+            graphics.centeredText(this.font, text, localBoxWidth / 2, 0, color);
+            graphics.pose().popMatrix();
             graphics.disableScissor();
             return;
         }
@@ -248,9 +264,10 @@ public class TaskScreen extends Screen {
             scrollX = maxScroll - (int) (backT * SCROLL_SPEED_PX_PER_MS);
         }
 
-        int textX = boxX + TEXT_PADDING - scrollX;
-        graphics.text(this.font, text, textX, textY, color);
+        int localTextX = TEXT_PADDING - scrollX;
+        graphics.text(this.font, text, localTextX, 0, color);
 
+        graphics.pose().popMatrix();
         graphics.disableScissor();
     }
 
@@ -296,7 +313,7 @@ public class TaskScreen extends Screen {
 
         double oldScale = scale;
         double newScale = oldScale + (scrollY > 0 ? ZOOM_STEP : -ZOOM_STEP);
-        newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+        newScale = Math.clamp(newScale, MIN_SCALE, MAX_SCALE);
 
         if (newScale != oldScale) {
             double factor = newScale / oldScale;

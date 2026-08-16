@@ -6,7 +6,6 @@ import com.benbenlaw.abilitylock.config.ClientConfig;
 import com.benbenlaw.abilitylock.config.ServerConfig;
 import com.benbenlaw.abilitylock.network.AbilityLockNetworking;
 import com.benbenlaw.abilitylock.task.TaskTypes;
-import com.benbenlaw.abilitylock.task.Tasks;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -30,7 +29,6 @@ public class AbilityLock {
 
         AbilityLockAttachments.ATTACHMENT_TYPES.register(eventBus);
 
-        Tasks.init();
         eventBus.addListener(this::commonSetup);
 
         modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, "bbl/abilitylock/client.toml");

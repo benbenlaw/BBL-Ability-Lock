@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Lapis Block",
+  "required_abilities": [
+    "abilitylock:breaking_lapis"
+  ],
+  "targets": [
+    "minecraft:lapis_block"
+  ]
+}

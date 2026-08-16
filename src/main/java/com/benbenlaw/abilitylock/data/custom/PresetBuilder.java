@@ -6,6 +6,7 @@ import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class PresetBuilder {
 
@@ -13,6 +14,9 @@ public class PresetBuilder {
     private final List<Identifier> startingAbilities = new ArrayList<>();
     private boolean onDeathLoseWorld = false;
     private final List<Identifier> unlockableAbilities = new ArrayList<>();
+    private Integer defaultGridSize;
+    private Integer immediateTaskPercentage;
+    private int bonusAbilityPercentage = 0;
 
     private PresetBuilder(String displayName) {
         this.displayName = displayName;
@@ -55,7 +59,30 @@ public class PresetBuilder {
         return this;
     }
 
+    public PresetBuilder defaultGridSize(int size) {
+        this.defaultGridSize = size;
+        return this;
+    }
+
+    public PresetBuilder immediateTaskPercentage(int percent) {
+        this.immediateTaskPercentage = percent;
+        return this;
+    }
+
+    public PresetBuilder bonusAbilityPercentage(int percent) {
+        this.bonusAbilityPercentage = percent;
+        return this;
+    }
+
     public PresetData build() {
-        return new PresetData(displayName, List.copyOf(startingAbilities), onDeathLoseWorld, List.copyOf(unlockableAbilities));
+        return new PresetData(
+                displayName,
+                List.copyOf(startingAbilities),
+                onDeathLoseWorld,
+                List.copyOf(unlockableAbilities),
+                Optional.ofNullable(defaultGridSize),
+                Optional.ofNullable(immediateTaskPercentage),
+                bonusAbilityPercentage
+        );
     }
 }

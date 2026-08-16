@@ -54,12 +54,12 @@ public class TaskProvider implements DataProvider {
                             .matchesTag(Identifier.parse("c:gravels")));
 
             save(futures, cachedOutput, "mine_stone",
-                 TaskBuilder.task("Mine Stone")
-                         .type(TaskTypes.BLOCK_BREAK)
-                         .requiredAbility("break_stone").requiredAbility("wooden_tools")
-                         .parent("mine_dirt")
-                         .target(8)
-                         .matchesTag(Identifier.parse("c:stones")));
+                    TaskBuilder.task("Mine Stone")
+                            .type(TaskTypes.BLOCK_BREAK)
+                            .requiredAbility("break_stone").requiredAbility("crafting_wooden_tools")
+                            .parent("mine_dirt")
+                            .target(8)
+                            .matchesTag(Identifier.parse("c:stones")));
 
 
             //Obtain Item
@@ -79,47 +79,47 @@ public class TaskProvider implements DataProvider {
             save(futures, cachedOutput, "obtain_wooden_pickaxe",
                     TaskBuilder.task("Obtain a Wooden Pickaxe")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("wooden_tools")
+                            .requiredAbility("crafting_wooden_tools")
                             .target(1)
                             .matches("minecraft:wooden_pickaxe"));
 
             save(futures, cachedOutput, "obtain_stone_pickaxe",
                     TaskBuilder.task("Obtain a Stone Pickaxe")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("stone_tools")
-                            .parent("wooden_pickaxe").parent("break_stone").parent("stone_tools")
+                            .requiredAbility("crafting_stone_tools")
+                            .parent("obtain_wooden_pickaxe").requiredAbility("break_stone")
                             .target(1)
                             .matches("minecraft:stone_pickaxe"));
 
             save(futures, cachedOutput, "obtain_copper_pickaxe",
                     TaskBuilder.task("Obtain a Copper Pickaxe")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("copper_tools").requiredAbility("break_copper").requiredAbility("furnace")
-                            .parent("stone_pickaxe").parent("break_copper").parent("copper_tools")
+                            .requiredAbility("crafting_copper_tools").requiredAbility("break_copper").requiredAbility("furnace")
+                            .parent("obtain_stone_pickaxe")
                             .target(1)
                             .matches("minecraft:copper_pickaxe"));
 
             save(futures, cachedOutput, "obtain_iron_pickaxe",
                     TaskBuilder.task("Obtain an Iron Pickaxe")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("iron_tools").requiredAbility("break_iron").requiredAbility("furnace")
-                            .parent("copper_pickaxe").parent("break_iron").parent("iron_tools")
+                            .requiredAbility("crafting_iron_tools").requiredAbility("break_iron").requiredAbility("furnace")
+                            .parent("obtain_copper_pickaxe")
                             .target(1)
                             .matches("minecraft:iron_pickaxe"));
 
             save(futures, cachedOutput, "obtain_gold_pickaxe",
                     TaskBuilder.task("Obtain an Gold Pickaxe")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("gold_tools").requiredAbility("break_gold").requiredAbility("furnace")
-                            .parent("iron_pickaxe").parent("break_gold").parent("gold_tools")
+                            .requiredAbility("crafting_gold_tools").requiredAbility("break_gold").requiredAbility("furnace")
+                            .parent("obtain_copper_pickaxe")
                             .target(1)
                             .matches("minecraft:golden_pickaxe"));
 
             save(futures, cachedOutput, "obtain_diamond_pickaxe",
                     TaskBuilder.task("Obtain a Diamond Pickaxe")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("diamond_tools")
-                            .parent("gold_pickaxe").parent("break_diamond").parent("diamond_tools")
+                            .requiredAbility("crafting_diamond_tools")
+                            .parent("obtain_gold_pickaxe")
                             .target(1)
                             .matches("minecraft:diamond_pickaxe"));
 
@@ -187,6 +187,72 @@ public class TaskProvider implements DataProvider {
                             .type(TaskTypes.ITEM_OBTAIN)
                             .target(8)
                             .matches("minecraft:wheat_seeds"));
+
+            save(futures, cachedOutput, "obtain_eye_of_ender",
+                    TaskBuilder.task("Obtain Eye of Ender")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("dimension_nether")
+                            .parent("kill_blaze")
+                            .target(1)
+                            .matches("minecraft:ender_eye"));
+
+            save(futures, cachedOutput, "obtain_golden_apple",
+                    TaskBuilder.task("Obtain Golden Apple")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("breaking_gold")
+                            .target(1)
+                            .matches("minecraft:golden_apple"));
+
+            save(futures, cachedOutput, "obtain_lapis_block",
+                    TaskBuilder.task("Obtain Lapis Block")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("breaking_lapis")
+                            .target(1)
+                            .matches("minecraft:lapis_block"));
+
+            save(futures, cachedOutput, "obtain_redstone_block",
+                    TaskBuilder.task("Obtain Redstone Block")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("breaking_redstone")
+                            .target(1)
+                            .matches("minecraft:redstone_block"));
+
+            save(futures, cachedOutput, "obtain_enchantment_table",
+                    TaskBuilder.task("Obtain Enchantment Table")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("breaking_obsidian")
+                            .target(1)
+                            .matches("minecraft:enchanting_table"));
+
+            save(futures, cachedOutput, "obtain_leather",
+                    TaskBuilder.task("Obtain Leather")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("passive_mob_damage")
+                            .target(1)
+                            .matches("minecraft:leather"));
+
+            save(futures, cachedOutput, "obtain_feather",
+                    TaskBuilder.task("Obtain Feather")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("passive_mob_damage")
+                            .target(1)
+                            .matches("minecraft:feather"));
+
+            save(futures, cachedOutput, "obtain_saddle",
+                    TaskBuilder.task("Obtain Saddle")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("passive_mob_damage")
+                            .parent("obtain_leather")
+                            .target(1)
+                            .matches("minecraft:saddle"));
+
+            save(futures, cachedOutput, "obtain_name_tag",
+                    TaskBuilder.task("Obtain Saddle")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("passive_mob_damage")
+                            .parent("obtain_sugar_cane")
+                            .target(1)
+                            .matches("minecraft:name_tag"));
 
             //Kill Entity
             save(futures, cachedOutput, "kill_bee",
@@ -276,14 +342,14 @@ public class TaskProvider implements DataProvider {
             save(futures, cachedOutput, "kill_blaze",
                     TaskBuilder.task("Kill a Blaze")
                             .type(TaskTypes.ENTITY_KILL)
-                            .requiredAbility("hostile_nether_mob_damage").requiredAbility("dimension_nether")
+                            .requiredAbility("nether_mob_damage").requiredAbility("dimension_nether")
                             .target(1)
                             .matches("minecraft:blaze"));
 
             save(futures, cachedOutput, "kill_wither_skeleton",
                     TaskBuilder.task("Kill a Wither Skeleton")
                             .type(TaskTypes.ENTITY_KILL)
-                            .requiredAbility("hostile_nether_mob_damage").requiredAbility("dimension_nether")
+                            .requiredAbility("nether_mob_damage").requiredAbility("dimension_nether")
                             .target(1)
                             .matches("minecraft:wither_skeleton"));
 

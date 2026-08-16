@@ -1,15 +1,16 @@
 package com.benbenlaw.abilitylock.task;
 
 import com.benbenlaw.abilitylock.ability.AbilityChecker;
-import com.benbenlaw.abilitylock.ability.AbilityData;
 import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.attachment.TaskProgressData;
 import com.benbenlaw.abilitylock.config.ServerConfig;
+import com.benbenlaw.abilitylock.network.packet.AbilityUnlockToastPacket;
 import com.benbenlaw.abilitylock.network.packet.SyncTaskProgressPacket;
+import com.benbenlaw.abilitylock.presets.PresetData;
+import com.benbenlaw.abilitylock.presets.PresetLoader;
 import com.benbenlaw.abilitylock.util.SpeedrunManager;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -105,96 +106,106 @@ public class TaskManager {
         TaskProgressData data = player.getData(AbilityLockAttachments.TASK_PROGRESS);
         if (!data.gridTaskIds().isEmpty()) return;
 
-        List<Identifier> grid = buildSolvableGrid(gridWidth * gridHeight, startingAbilities, player.getRandom());
+        AbilityLockData abilityData = player.getData(AbilityLockAttachments.ABILITY_LOCK);
+        PresetData preset = abilityData.presetId().map(PresetLoader.DATA::get).orElse(null);
 
-        TaskProgressData updated = data.withGrid(grid, gridWidth);
+        int effectiveWidth = gridWidth;
+        int effectiveHeight = gridHeight;
+        if (preset != null && preset.defaultGridSize().isPresent()) {
+            int locked = preset.defaultGridSize().get();
+            effectiveWidth = locked;
+            effectiveHeight = locked;
+        }
+
+        int immediatePercent = resolveImmediateTaskPercentage(preset);
+        List<Identifier> grid = buildSolvableGrid(effectiveWidth * effectiveHeight, startingAbilities, player.getRandom(), immediatePercent);
+
+        TaskProgressData updated = data.withGrid(grid, effectiveWidth);
         player.setData(AbilityLockAttachments.TASK_PROGRESS, updated);
         PacketDistributor.sendToPlayer(player, new SyncTaskProgressPacket(updated));
     }
 
-    private static List<Identifier> buildSolvableGrid(int targetCount, Set<Identifier> startingAbilities, RandomSource random) {
-        Set<Identifier> unlocked = new HashSet<>(startingAbilities);
+    private static int resolveImmediateTaskPercentage(@Nullable PresetData preset) {
+        if (preset != null && preset.immediateTaskPercentage().isPresent()) {
+            return preset.immediateTaskPercentage().get();
+        }
+
+        return ServerConfig.immediateTaskPercentage.get();
+    }
+
+    private static List<Identifier> buildSolvableGrid(int targetCount, Set<Identifier> startingAbilities, RandomSource random, int immediatePercent) {
         Random rng = new Random(random.nextLong());
 
         List<TaskType> allTasks = new ArrayList<>(TaskLoader.TASKS.values());
         Collections.shuffle(allTasks, rng);
 
-        List<TaskType> immediatePool = new ArrayList<>();
-        List<TaskType> gatedPool = new ArrayList<>();
-        for (TaskType task : allTasks) {
-            if (startingAbilities.containsAll(task.getRequiredAbilities())) {
-                immediatePool.add(task);
-            } else {
-                gatedPool.add(task);
-            }
-        }
-
         List<Identifier> selected = new ArrayList<>();
-        int immediatePercent = ServerConfig.immediateTaskPercentage.get();
+        Set<TaskType> selectedTasks = new HashSet<>();
+        Set<Identifier> unionNeeded = new HashSet<>();
 
-        Iterator<TaskType> immediateIter = immediatePool.iterator();
-        while (selected.size() < targetCount && immediateIter.hasNext()) {
-            TaskType task = immediateIter.next();
+        for (TaskType task : allTasks) {
+            if (selected.size() >= targetCount) break;
+            if (!startingAbilities.containsAll(task.getRequiredAbilities())) continue;
             if (rng.nextInt(100) >= immediatePercent) continue;
 
-            immediateIter.remove();
             selected.add(task.getId());
-            simulateAbilityGrant(unlocked, gatedPool, immediatePool, rng);
+            selectedTasks.add(task);
+            for (Identifier abilityId : task.getRequiredAbilities()) {
+                unionNeeded.addAll(AbilityLoader.withAncestors(abilityId));
+            }
         }
+        unionNeeded.removeAll(startingAbilities);
 
-        while (selected.size() < targetCount) {
-            TaskType next = pickReachable(gatedPool, unlocked);
-            if (next == null) next = pickReachable(immediatePool, unlocked);
-            if (next == null) break;
+        for (TaskType task : allTasks) {
+            if (selected.size() >= targetCount) break;
+            if (selectedTasks.contains(task)) continue;
 
-            gatedPool.remove(next);
-            immediatePool.remove(next);
-            selected.add(next.getId());
-            simulateAbilityGrant(unlocked, gatedPool, immediatePool, rng);
+            Set<Identifier> marginal = new HashSet<>();
+            for (Identifier abilityId : task.getRequiredAbilities()) {
+                marginal.addAll(AbilityLoader.withAncestors(abilityId));
+            }
+            marginal.removeAll(startingAbilities);
+            marginal.removeAll(unionNeeded);
+
+            if (unionNeeded.size() + marginal.size() <= targetCount) {
+                selected.add(task.getId());
+                selectedTasks.add(task);
+                unionNeeded.addAll(marginal);
+            }
         }
 
         return selected;
     }
 
-    private static @Nullable TaskType pickReachable(List<TaskType> pool, Set<Identifier> unlocked) {
-        for (TaskType candidate : pool) {
-            if (unlocked.containsAll(candidate.getRequiredAbilities())) {
-                return candidate;
-            }
-        }
-        return null;
+    private static void onTaskCompleted(ServerPlayer player, TaskType task, TaskProgressData progressData) {
+        grantGridAwareAbility(player, progressData).ifPresent(id -> announceUnlock(player, id, false));
+        maybeGrantBonusAbility(player);
     }
 
-    private static void simulateAbilityGrant(Set<Identifier> unlocked, List<TaskType> pendingA, List<TaskType> pendingB, Random rng) {
-        List<Identifier> eligible = new ArrayList<>();
-        for (Identifier abilityId : AbilityLoader.DATA.keySet()) {
-            if (unlocked.contains(abilityId)) continue;
+    private static void maybeGrantBonusAbility(ServerPlayer player) {
+        AbilityLockData abilityData = player.getData(AbilityLockAttachments.ABILITY_LOCK);
 
-            AbilityData abilityData = AbilityLoader.DATA.get(abilityId);
-            if (!unlocked.containsAll(abilityData.parents())) continue;
+        int bonusPercent = resolveBonusAbilityPercentage(abilityData);
+        if (bonusPercent <= 0) return;
+        if (player.getRandom().nextInt(100) >= bonusPercent) return;
 
-            eligible.add(abilityId);
-        }
+        List<Identifier> eligible = AbilityChecker.getEligibleAbilities(abilityData);
         if (eligible.isEmpty()) return;
 
-        Set<Identifier> relevant = new HashSet<>(relevantAbilitiesFor(pendingA));
-        relevant.addAll(relevantAbilitiesFor(pendingB));
-
-        List<Identifier> preferred = new ArrayList<>();
-        for (Identifier abilityId : eligible) {
-            if (relevant.contains(abilityId)) preferred.add(abilityId);
-        }
-
-        List<Identifier> pool = preferred.isEmpty() ? eligible : preferred;
-        unlocked.add(pool.get(rng.nextInt(pool.size())));
+        Identifier chosen = eligible.get(player.getRandom().nextInt(eligible.size()));
+        AbilityChecker.grantSpecific(player, chosen);
+        announceUnlock(player, chosen, true);
     }
 
-    private static void onTaskCompleted(ServerPlayer player, TaskType task, TaskProgressData progressData) {
-        grantGridAwareAbility(player, progressData).ifPresent(id -> {
-            AbilityData data = AbilityLoader.DATA.get(id);
-            String name = data != null ? data.displayName() : id.toString();
-            player.sendSystemMessage(Component.literal("Locked ability unlocked: " + name));
-        });
+    private static int resolveBonusAbilityPercentage(AbilityLockData data) {
+        if (data.presetId().isEmpty()) return 0;
+
+        PresetData preset = PresetLoader.DATA.get(data.presetId().get());
+        return preset != null ? preset.bonusAbilityPercentage() : 0;
+    }
+
+    private static void announceUnlock(ServerPlayer player, Identifier id, boolean bonus) {
+        PacketDistributor.sendToPlayer(player, new AbilityUnlockToastPacket(id, bonus));
     }
 
     private static Optional<Identifier> grantGridAwareAbility(ServerPlayer player, TaskProgressData progressData) {

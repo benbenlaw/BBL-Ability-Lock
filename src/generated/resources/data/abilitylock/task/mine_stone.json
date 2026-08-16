@@ -6,7 +6,7 @@
   ],
   "required_abilities": [
     "abilitylock:break_stone",
-    "abilitylock:wooden_tools"
+    "abilitylock:crafting_wooden_tools"
   ],
   "target": 8,
   "targets": [

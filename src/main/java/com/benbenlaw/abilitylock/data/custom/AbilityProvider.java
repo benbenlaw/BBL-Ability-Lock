@@ -99,7 +99,7 @@ public class AbilityProvider implements DataProvider {
             save(futures, cachedOutput, "break_stone",
                     AbilityBuilder.ability("Breaking Stone")
                             .type(AbilityTypes.BLOCK_BREAK)
-                            .parent("wooden_tools")
+                            .parent("crafting_wooden_tools")
                             .targets("minecraft:stone", "minecraft:cobblestone"));
 
             save(futures, cachedOutput,"break_andesite",
@@ -197,7 +197,7 @@ public class AbilityProvider implements DataProvider {
             save(futures, cachedOutput,"passive_mob_damage",
                     AbilityBuilder.ability("Passive Mob Damage")
                             .type(AbilityTypes.ENTITY_HURT)
-                            .parent("stone_tools")
+                            .parent("crafting_stone_tools")
                             .targets("minecraft:cow", "minecraft:sheep", "minecraft:chicken", "minecraft:pig", "minecraft:bat", "minecraft:bee", "minecraft:fox", "minecraft:wolf"));
 
             save(futures, cachedOutput,"passive_aquatic_mob_damage",
@@ -221,46 +221,46 @@ public class AbilityProvider implements DataProvider {
                             .targets("minecraft:magma_cube", "minecraft:zombified_piglin", "minecraft:wither_skeleton", "minecraft:strider", "minecraft:blaze"));
 
             //Recipe
-            save(futures, cachedOutput,"wooden_tools",
+            save(futures, cachedOutput,"crafting_wooden_tools",
                     AbilityBuilder.ability("Wooden Tools")
                             .type(AbilityTypes.CRAFTING_ABILITY)
                             .parent("crafting_table")
                             .targets("minecraft:wooden_pickaxe", "minecraft:wooden_axe", "minecraft:wooden_shovel", "minecraft:wooden_hoe", "minecraft:wooden_sword"));
 
-            save(futures, cachedOutput,"stone_tools",
+            save(futures, cachedOutput,"crafting_stone_tools",
                     AbilityBuilder.ability("Stone Tools")
                             .type(AbilityTypes.CRAFTING_ABILITY)
-                            .parent("wooden_tools")
+                            .parent("crafting_wooden_tools")
                             .targets("minecraft:stone_pickaxe", "minecraft:stone_axe", "minecraft:stone_shovel", "minecraft:stone_hoe", "minecraft:stone_sword"));
 
-            save(futures, cachedOutput,"copper_tools",
+            save(futures, cachedOutput,"crafting_copper_tools",
                     AbilityBuilder.ability("Copper Tools")
                             .type(AbilityTypes.CRAFTING_ABILITY)
-                            .parent("stone_tools")
+                            .parent("crafting_stone_tools")
                             .targets("minecraft:copper_pickaxe", "minecraft:copper_axe", "minecraft:copper_shovel", "minecraft:copper_hoe", "minecraft:copper_sword"));
 
-            save(futures, cachedOutput, "iron_tools",
+            save(futures, cachedOutput, "crafting_iron_tools",
                     AbilityBuilder.ability("Iron Tools")
                             .type(AbilityTypes.CRAFTING_ABILITY)
-                            .parent("copper_tools")
+                            .parent("crafting_copper_tools")
                             .targets("minecraft:iron_pickaxe", "minecraft:iron_axe", "minecraft:iron_shovel", "minecraft:iron_hoe", "minecraft:iron_sword"));
 
-            save(futures, cachedOutput, "gold_tools",
+            save(futures, cachedOutput, "crafting_gold_tools",
                     AbilityBuilder.ability("Gold Tools")
                             .type(AbilityTypes.CRAFTING_ABILITY)
-                            .parent("copper_tools")
+                            .parent("crafting_copper_tools")
                             .targets("minecraft:golden_pickaxe", "minecraft:golden_axe", "minecraft:golden_shovel", "minecraft:golden_hoe", "minecraft:golden_sword"));
 
-            save(futures, cachedOutput, "diamond_tools",
+            save(futures, cachedOutput, "crafting_diamond_tools",
                     AbilityBuilder.ability("Diamond Tools")
                             .type(AbilityTypes.CRAFTING_ABILITY)
-                            .parent("gold_tools")
+                            .parent("crafting_gold_tools")
                             .targets("minecraft:diamond_pickaxe", "minecraft:diamond_axe", "minecraft:diamond_shovel", "minecraft:diamond_hoe", "minecraft:diamond_sword"));
 
-            save(futures, cachedOutput, "netherite_tools",
+            save(futures, cachedOutput, "crafting_netherite_tools",
                     AbilityBuilder.ability("Netherite Tools")
                             .type(AbilityTypes.CRAFTING_ABILITY)
-                            .parent("diamond_tools")
+                            .parent("crafting_diamond_tools")
                             .targets("minecraft:netherite_pickaxe", "minecraft:netherite_axe", "minecraft:netherite_shovel", "minecraft:netherite_hoe", "minecraft:netherite_sword"));
 
             //Movement

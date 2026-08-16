@@ -30,13 +30,17 @@ public class PresetProvider implements DataProvider {
 
             save(futures, cachedOutput, "standard", PresetBuilder
                     .preset("Standard")
-                    .startingAbilities("forward"));
+                    .startingAbilities("forward")
+                    .bonusAbilityPercentage(15));
 
             save(futures, cachedOutput, "hardcore", PresetBuilder
                     .preset("Hardcore")
                     .startingAbilities("forward")
                     .unlockableAbilities("backward", "left", "right")
-                    .onDeathLoseWorld(true));
+                    .onDeathLoseWorld(true)
+                    .defaultGridSize(5)
+                    .immediateTaskPercentage(15)
+                    .bonusAbilityPercentage(10));
 
 
             return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));

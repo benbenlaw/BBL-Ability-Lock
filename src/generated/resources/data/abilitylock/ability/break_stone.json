@@ -2,7 +2,7 @@
   "type": "abilitylock:block_break_ability",
   "display_name": "Breaking Stone",
   "parents": [
-    "abilitylock:wooden_tools"
+    "abilitylock:crafting_wooden_tools"
   ],
   "targets": [
     "minecraft:stone",

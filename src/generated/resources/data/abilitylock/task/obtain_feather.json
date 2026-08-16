@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Feather",
+  "required_abilities": [
+    "abilitylock:passive_mob_damage"
+  ],
+  "targets": [
+    "minecraft:feather"
+  ]
+}

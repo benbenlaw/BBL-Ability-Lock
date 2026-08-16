@@ -2,7 +2,7 @@
   "type": "abilitylock:crafting_ability",
   "display_name": "Netherite Tools",
   "parents": [
-    "abilitylock:diamond_tools"
+    "abilitylock:crafting_diamond_tools"
   ],
   "targets": [
     "minecraft:netherite_pickaxe",

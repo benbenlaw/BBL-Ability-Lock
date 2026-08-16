@@ -2,7 +2,7 @@
   "type": "abilitylock:crafting_ability",
   "display_name": "Diamond Tools",
   "parents": [
-    "abilitylock:gold_tools"
+    "abilitylock:crafting_gold_tools"
   ],
   "targets": [
     "minecraft:diamond_pickaxe",

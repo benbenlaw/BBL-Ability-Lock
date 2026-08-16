@@ -1,6 +1,7 @@
 package com.benbenlaw.abilitylock.events.client;
 
 import com.benbenlaw.abilitylock.AbilityLock;
+import com.benbenlaw.abilitylock.ability.client.AbilityUnlockToastManager;
 import com.benbenlaw.abilitylock.config.ClientConfig;
 import com.benbenlaw.abilitylock.screen.AbilityLockScreen;
 import com.benbenlaw.abilitylock.screen.PendingAbilityLockWorldSettings;
@@ -63,20 +64,25 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onRenderGui(RenderGuiEvent.Post event) {
-        if (!SpeedrunTimer.isRunning() && !SpeedrunTimer.isFinished()) {
-            return;
-        }
-
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
 
         GuiGraphicsExtractor guiGraphics = event.getGuiGraphics();
-        String time = SpeedrunTimer.getFormattedTime();
         int width = mc.getWindow().getGuiScaledWidth();
-        int x = (width / 2) - (mc.font.width(time) / 2);
-        int y = 10;
 
-        guiGraphics.text(mc.font, time, x, y, 0xFFFFFFFF);
+        if (SpeedrunTimer.isRunning() || SpeedrunTimer.isFinished()) {
+            String time = SpeedrunTimer.getFormattedTime();
+            int timeX = (width / 2) - (mc.font.width(time) / 2);
+            guiGraphics.text(mc.font, time, timeX, 10, 0xFFFFFFFF);
+        }
+
+        AbilityUnlockToastManager.Entry entry = AbilityUnlockToastManager.current();
+        if (entry != null) {
+            String label = (entry.bonus() ? "Bonus Unlock: " : "Ability Unlocked: ") + entry.displayName();
+            int labelX = (width / 2) - (mc.font.width(label) / 2);
+            int color = entry.bonus() ? 0xFFFFD700 : 0xFF55FF55;
+            guiGraphics.text(mc.font, label, labelX, 30, color);
+        }
     }
 
     @SubscribeEvent

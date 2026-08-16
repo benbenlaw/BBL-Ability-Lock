@@ -1,0 +1,13 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Eye of Ender",
+  "parents": [
+    "abilitylock:kill_blaze"
+  ],
+  "required_abilities": [
+    "abilitylock:dimension_nether"
+  ],
+  "targets": [
+    "minecraft:ender_eye"
+  ]
+}

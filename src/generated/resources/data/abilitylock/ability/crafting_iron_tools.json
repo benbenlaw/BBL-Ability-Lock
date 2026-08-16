@@ -2,7 +2,7 @@
   "type": "abilitylock:crafting_ability",
   "display_name": "Iron Tools",
   "parents": [
-    "abilitylock:copper_tools"
+    "abilitylock:crafting_copper_tools"
   ],
   "targets": [
     "minecraft:iron_pickaxe",
