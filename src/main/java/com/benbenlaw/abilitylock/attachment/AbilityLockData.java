@@ -9,7 +9,7 @@ import net.minecraft.resources.Identifier;
 
 import java.util.*;
 
-public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identifier> presetId, boolean eliminated) {
+public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identifier> presetId, boolean eliminated, Optional<Identifier> lastGranted) {
 
     public static final Codec<AbilityLockData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Identifier.CODEC.listOf()
@@ -17,7 +17,8 @@ public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identi
                     .fieldOf("unlocked")
                     .forGetter(AbilityLockData::unlockedAbilities),
             Identifier.CODEC.optionalFieldOf("preset").forGetter(AbilityLockData::presetId),
-            Codec.BOOL.optionalFieldOf("eliminated", false).forGetter(AbilityLockData::eliminated)
+            Codec.BOOL.optionalFieldOf("eliminated", false).forGetter(AbilityLockData::eliminated),
+            Identifier.CODEC.optionalFieldOf("last_granted").forGetter(AbilityLockData::lastGranted)
     ).apply(instance, AbilityLockData::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AbilityLockData> STREAM_CODEC = StreamCodec.composite(
@@ -27,6 +28,8 @@ public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identi
             AbilityLockData::presetId,
             ByteBufCodecs.BOOL,
             AbilityLockData::eliminated,
+            Identifier.STREAM_CODEC.apply(ByteBufCodecs::optional),
+            AbilityLockData::lastGranted,
             AbilityLockData::fromParts
     );
 
@@ -34,12 +37,16 @@ public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identi
         return new ArrayList<>(data.unlockedAbilities());
     }
 
-    private static AbilityLockData fromParts(List<Identifier> list, Optional<Identifier> presetId, boolean eliminated) {
-        return new AbilityLockData(new HashSet<>(list), presetId, eliminated);
+    private static AbilityLockData fromParts(List<Identifier> list, Optional<Identifier> presetId, boolean eliminated, Optional<Identifier> lastGranted) {
+        return new AbilityLockData(new HashSet<>(list), presetId, eliminated, lastGranted);
     }
 
     public AbilityLockData(Set<Identifier> unlockedAbilities) {
-        this(unlockedAbilities, Optional.empty(), false);
+        this(unlockedAbilities, Optional.empty(), false, Optional.empty());
+    }
+
+    public AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identifier> presetId) {
+        this(unlockedAbilities, presetId, false, Optional.empty());
     }
 
     public boolean has(Identifier ability) {
@@ -50,14 +57,14 @@ public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identi
         if (unlockedAbilities.contains(ability)) return this;
         Set<Identifier> copy = new HashSet<>(unlockedAbilities);
         copy.add(ability);
-        return new AbilityLockData(copy, presetId, eliminated);
+        return new AbilityLockData(copy, presetId, eliminated, Optional.of(ability));
     }
 
     public AbilityLockData withPreset(Identifier presetId) {
-        return new AbilityLockData(unlockedAbilities, Optional.of(presetId), eliminated);
+        return new AbilityLockData(unlockedAbilities, Optional.of(presetId), eliminated, lastGranted);
     }
 
     public AbilityLockData withEliminated(boolean eliminated) {
-        return new AbilityLockData(unlockedAbilities, presetId, eliminated);
+        return new AbilityLockData(unlockedAbilities, presetId, eliminated, lastGranted);
     }
 }

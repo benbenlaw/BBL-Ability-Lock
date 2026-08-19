@@ -9,7 +9,13 @@ import net.minecraft.resources.Identifier;
 
 import java.util.*;
 
-public record TaskProgressData(Map<Identifier, Integer> progress, Set<Identifier> completed, List<Identifier> gridTaskIds, int gridWidth) {
+public record TaskProgressData(
+        Map<Identifier, Integer> progress,
+        Set<Identifier> completed,
+        List<Identifier> gridTaskIds,
+        int gridWidth,
+        Map<Identifier, Identifier> taskGrants
+) {
 
     public static final Codec<TaskProgressData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Codec.unboundedMap(Identifier.CODEC, Codec.INT).fieldOf("progress").forGetter(TaskProgressData::progress),
@@ -18,7 +24,10 @@ public record TaskProgressData(Map<Identifier, Integer> progress, Set<Identifier
                     .fieldOf("completed")
                     .forGetter(TaskProgressData::completed),
             Identifier.CODEC.listOf().fieldOf("gridTaskIds").forGetter(TaskProgressData::gridTaskIds),
-            Codec.INT.optionalFieldOf("gridWidth", 0).forGetter(TaskProgressData::gridWidth)
+            Codec.INT.optionalFieldOf("gridWidth", 0).forGetter(TaskProgressData::gridWidth),
+            Codec.unboundedMap(Identifier.CODEC, Identifier.CODEC)
+                    .optionalFieldOf("taskGrants", Map.of())
+                    .forGetter(TaskProgressData::taskGrants)
     ).apply(instance, TaskProgressData::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, TaskProgressData> STREAM_CODEC = StreamCodec.composite(
@@ -30,6 +39,8 @@ public record TaskProgressData(Map<Identifier, Integer> progress, Set<Identifier
             TaskProgressData::gridTaskIds,
             ByteBufCodecs.INT,
             TaskProgressData::gridWidth,
+            ByteBufCodecs.map(HashMap::new, Identifier.STREAM_CODEC, Identifier.STREAM_CODEC),
+            TaskProgressData::taskGrants,
             TaskProgressData::fromParts
     );
 
@@ -37,12 +48,28 @@ public record TaskProgressData(Map<Identifier, Integer> progress, Set<Identifier
         return new ArrayList<>(data.completed());
     }
 
-    private static TaskProgressData fromParts(Map<Identifier, Integer> progress, List<Identifier> completedList, List<Identifier> gridTaskIds, int gridWidth) {
-        return new TaskProgressData(new HashMap<>(progress), new HashSet<>(completedList), new ArrayList<>(gridTaskIds), gridWidth);
+    private static TaskProgressData fromParts(
+            Map<Identifier, Integer> progress,
+            List<Identifier> completedList,
+            List<Identifier> gridTaskIds,
+            int gridWidth,
+            Map<Identifier, Identifier> taskGrants
+    ) {
+        return new TaskProgressData(
+                new HashMap<>(progress),
+                new HashSet<>(completedList),
+                new ArrayList<>(gridTaskIds),
+                gridWidth,
+                new HashMap<>(taskGrants)
+        );
     }
 
     public TaskProgressData(Map<Identifier, Integer> progress, Set<Identifier> completed, List<Identifier> gridTaskIds) {
-        this(progress, completed, gridTaskIds, 0);
+        this(progress, completed, gridTaskIds, 0, Map.of());
+    }
+
+    public TaskProgressData(Map<Identifier, Integer> progress, Set<Identifier> completed, List<Identifier> gridTaskIds, int gridWidth) {
+        this(progress, completed, gridTaskIds, gridWidth, Map.of());
     }
 
     public int progressOf(Identifier taskId) {
@@ -68,7 +95,7 @@ public record TaskProgressData(Map<Identifier, Integer> progress, Set<Identifier
 
         Map<Identifier, Integer> newProgress = new HashMap<>(progress);
         newProgress.put(taskId, updated);
-        return new TaskProgressData(newProgress, completed, gridTaskIds, gridWidth);
+        return new TaskProgressData(newProgress, completed, gridTaskIds, gridWidth, taskGrants);
     }
 
     public TaskProgressData withProgressSet(Identifier taskId, int value, int target) {
@@ -77,17 +104,21 @@ public record TaskProgressData(Map<Identifier, Integer> progress, Set<Identifier
 
         Map<Identifier, Integer> newProgress = new HashMap<>(progress);
         newProgress.put(taskId, capped);
-        return new TaskProgressData(newProgress, completed, gridTaskIds, gridWidth);
+        return new TaskProgressData(newProgress, completed, gridTaskIds, gridWidth, taskGrants);
     }
 
     public TaskProgressData withCompleted(Identifier taskId) {
         if (completed.contains(taskId)) return this;
         Set<Identifier> newCompleted = new HashSet<>(completed);
         newCompleted.add(taskId);
-        return new TaskProgressData(progress, newCompleted, gridTaskIds, gridWidth);
+        return new TaskProgressData(progress, newCompleted, gridTaskIds, gridWidth, taskGrants);
     }
 
     public TaskProgressData withGrid(List<Identifier> newGridTaskIds, int newGridWidth) {
-        return new TaskProgressData(progress, completed, new ArrayList<>(newGridTaskIds), newGridWidth);
+        return withGrid(newGridTaskIds, newGridWidth, Map.of());
+    }
+
+    public TaskProgressData withGrid(List<Identifier> newGridTaskIds, int newGridWidth, Map<Identifier, Identifier> newTaskGrants) {
+        return new TaskProgressData(progress, completed, new ArrayList<>(newGridTaskIds), newGridWidth, new HashMap<>(newTaskGrants));
     }
 }

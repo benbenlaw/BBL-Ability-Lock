@@ -80,13 +80,13 @@ public class AbilityProvider implements DataProvider {
             save(futures, cachedOutput,"enchanting_table",
                     AbilityBuilder.ability("Enchanting Table")
                             .type(AbilityTypes.BLOCK_INTERACT)
-                            .parent("crafting_table")
+                            .parent("break_obsidian")
                             .target("minecraft:enchanting_table"));
 
             save(futures, cachedOutput,"smithing_table",
                     AbilityBuilder.ability("Smithing")
                             .type(AbilityTypes.BLOCK_INTERACT)
-                            .parent("crafting_table")
+                            .parent("break_iron")
                             .target("minecraft:smithing_table"));
 
             //Block Breaking
@@ -242,7 +242,7 @@ public class AbilityProvider implements DataProvider {
             save(futures, cachedOutput, "crafting_iron_tools",
                     AbilityBuilder.ability("Iron Tools")
                             .type(AbilityTypes.CRAFTING_ABILITY)
-                            .parent("crafting_copper_tools")
+                            .parent("crafting_stone_tools")
                             .targets("minecraft:iron_pickaxe", "minecraft:iron_axe", "minecraft:iron_shovel", "minecraft:iron_hoe", "minecraft:iron_sword"));
 
             save(futures, cachedOutput, "crafting_gold_tools",

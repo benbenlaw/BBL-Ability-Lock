@@ -5,7 +5,8 @@
     "abilitylock:obtain_leather"
   ],
   "required_abilities": [
-    "abilitylock:passive_mob_damage"
+    "abilitylock:passive_mob_damage",
+    "abilitylock:break_iron"
   ],
   "targets": [
     "minecraft:saddle"

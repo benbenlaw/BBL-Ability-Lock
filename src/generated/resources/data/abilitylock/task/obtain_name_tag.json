@@ -1,11 +1,12 @@
 {
   "type": "abilitylock:item_obtain_task",
-  "display_name": "Obtain Saddle",
+  "display_name": "Obtain Name Tag",
   "parents": [
     "abilitylock:obtain_sugar_cane"
   ],
   "required_abilities": [
-    "abilitylock:passive_mob_damage"
+    "abilitylock:passive_mob_damage",
+    "abilitylock:break_copper"
   ],
   "targets": [
     "minecraft:name_tag"

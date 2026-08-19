@@ -118,6 +118,7 @@ public class TaskProvider implements DataProvider {
             save(futures, cachedOutput, "obtain_diamond_pickaxe",
                     TaskBuilder.task("Obtain a Diamond Pickaxe")
                             .type(TaskTypes.ITEM_OBTAIN)
+                            .type(TaskTypes.ITEM_OBTAIN)
                             .requiredAbility("crafting_diamond_tools")
                             .parent("obtain_gold_pickaxe")
                             .target(1)
@@ -199,7 +200,7 @@ public class TaskProvider implements DataProvider {
             save(futures, cachedOutput, "obtain_golden_apple",
                     TaskBuilder.task("Obtain Golden Apple")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("breaking_gold")
+                            .requiredAbility("break_gold")
                             .target(1)
                             .matches("minecraft:golden_apple"));
 
@@ -241,15 +242,15 @@ public class TaskProvider implements DataProvider {
             save(futures, cachedOutput, "obtain_saddle",
                     TaskBuilder.task("Obtain Saddle")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("passive_mob_damage")
+                            .requiredAbility("passive_mob_damage").requiredAbility("break_iron")
                             .parent("obtain_leather")
                             .target(1)
                             .matches("minecraft:saddle"));
 
             save(futures, cachedOutput, "obtain_name_tag",
-                    TaskBuilder.task("Obtain Saddle")
+                    TaskBuilder.task("Obtain Name Tag")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("passive_mob_damage")
+                            .requiredAbility("passive_mob_damage").requiredAbility("break_copper")
                             .parent("obtain_sugar_cane")
                             .target(1)
                             .matches("minecraft:name_tag"));

@@ -219,7 +219,7 @@ public class AbilityLockCommand {
         Set<Identifier> removed = new HashSet<>();
         removeCascade(abilityId, updated, removed);
 
-        AbilityLockData newData = new AbilityLockData(updated, data.presetId(), data.eliminated());
+        AbilityLockData newData = new AbilityLockData(updated, data.presetId(), data.eliminated(), data.lastGranted());
         player.setData(AbilityLockAttachments.ABILITY_LOCK, newData);
 
         PacketDistributor.sendToPlayer(player, new SyncAbilityLockPacket(newData));
@@ -231,7 +231,6 @@ public class AbilityLockCommand {
         return 1;
     }
 
-    /** Cascades through every ability that lists id as ANY of its parents. */
     private static void removeCascade(Identifier id, Set<Identifier> unlocked, Set<Identifier> removed) {
         if (!unlocked.remove(id)) return;
         removed.add(id);

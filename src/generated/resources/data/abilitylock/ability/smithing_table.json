@@ -2,7 +2,7 @@
   "type": "abilitylock:block_interact_ability",
   "display_name": "Smithing",
   "parents": [
-    "abilitylock:crafting_table"
+    "abilitylock:break_iron"
   ],
   "targets": [
     "minecraft:smithing_table"

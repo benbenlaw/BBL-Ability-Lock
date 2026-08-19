@@ -2,7 +2,7 @@
   "type": "abilitylock:block_interact_ability",
   "display_name": "Enchanting Table",
   "parents": [
-    "abilitylock:crafting_table"
+    "abilitylock:break_obsidian"
   ],
   "targets": [
     "minecraft:enchanting_table"

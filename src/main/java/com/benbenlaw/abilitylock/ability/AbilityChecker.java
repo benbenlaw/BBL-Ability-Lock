@@ -7,6 +7,7 @@ import com.benbenlaw.abilitylock.presets.PresetData;
 import com.benbenlaw.abilitylock.presets.PresetLoader;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
@@ -107,5 +108,14 @@ public class AbilityChecker {
             if (broken != null) return broken;
         }
         return null;
+    }
+
+    public static Identifier pickPreferredAbility(List<Identifier> eligible, Set<Identifier> relevantAbilities, RandomSource random) {
+        List<Identifier> preferred = new ArrayList<>();
+        for (Identifier id : eligible) {
+            if (relevantAbilities.contains(id)) preferred.add(id);
+        }
+        List<Identifier> pool = preferred.isEmpty() ? eligible : preferred;
+        return pool.get(random.nextInt(pool.size()));
     }
 }

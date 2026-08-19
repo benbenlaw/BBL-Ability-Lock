@@ -1,4 +1,4 @@
-// 26.1.2	2026-08-16T12:03:59.7768486	abilitylock Tasks
+// 26.1.2	2026-08-18T12:25:59.4609313	abilitylock Tasks
 98552f21d02b6eb08d7b7678739438db0ae73483 data/abilitylock/task/kill_bat.json
 625591a9a89e901ab8ab156ba5787e5c036773a5 data/abilitylock/task/kill_bee.json
 5e63441b6a1dd43249c89a59fdedc80ddf8fc8d5 data/abilitylock/task/kill_blaze.json
@@ -35,10 +35,10 @@ e0ad54ef2f8655f84d92e8a90de9ad2dd97f7f20 data/abilitylock/task/obtain_feather.js
 8a05426364464d52358223bb152e105aea9b97c4 data/abilitylock/task/obtain_lapis_block.json
 80c7d64b2ad62092afb732300f9252a70f678a7a data/abilitylock/task/obtain_leather.json
 e6b6a3ea28cee967200286a3b867ed155e8ec3ff data/abilitylock/task/obtain_logs.json
-9f72224f3c189b662db6c359d8396a94559f9351 data/abilitylock/task/obtain_name_tag.json
+0bd504bb21591c03d219f9f1e1dfbb4307cec782 data/abilitylock/task/obtain_name_tag.json
 71bdd77d0c918c02fc5c839e1a21f059394a745f data/abilitylock/task/obtain_pumpkin.json
 8a71765683e4fd62ba7ab2cc7bcb8989401ee0f5 data/abilitylock/task/obtain_redstone_block.json
-9114aa2e8f6e11eb17d00c6b6aa759565148cb27 data/abilitylock/task/obtain_saddle.json
+3fe9c500bb45856620d3bd35448e9126058d7d91 data/abilitylock/task/obtain_saddle.json
 5a496e2f4ab782cfe0bf149ef90b0a090d28eb56 data/abilitylock/task/obtain_stone_pickaxe.json
 0f70f50898f6e3caeaad130700e60d9743761df9 data/abilitylock/task/obtain_sugar_cane.json
 2ff75f1f9ed9f551b74ff15cf65005f30c7560cf data/abilitylock/task/obtain_wheat_seeds.json
