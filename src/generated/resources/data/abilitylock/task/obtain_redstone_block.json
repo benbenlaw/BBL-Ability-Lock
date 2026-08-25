@@ -2,7 +2,7 @@
   "type": "abilitylock:item_obtain_task",
   "display_name": "Obtain Redstone Block",
   "required_abilities": [
-    "abilitylock:breaking_redstone"
+    "abilitylock:break_redstone"
   ],
   "targets": [
     "minecraft:redstone_block"

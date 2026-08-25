@@ -118,8 +118,7 @@ public class TaskProvider implements DataProvider {
             save(futures, cachedOutput, "obtain_diamond_pickaxe",
                     TaskBuilder.task("Obtain a Diamond Pickaxe")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("crafting_diamond_tools")
+                            .requiredAbility("crafting_diamond_tools").requiredAbility("break_diamond")
                             .parent("obtain_gold_pickaxe")
                             .target(1)
                             .matches("minecraft:diamond_pickaxe"));
@@ -207,21 +206,28 @@ public class TaskProvider implements DataProvider {
             save(futures, cachedOutput, "obtain_lapis_block",
                     TaskBuilder.task("Obtain Lapis Block")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("breaking_lapis")
+                            .requiredAbility("break_lapis")
                             .target(1)
                             .matches("minecraft:lapis_block"));
 
             save(futures, cachedOutput, "obtain_redstone_block",
                     TaskBuilder.task("Obtain Redstone Block")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("breaking_redstone")
+                            .requiredAbility("break_redstone")
                             .target(1)
                             .matches("minecraft:redstone_block"));
+
+            save(futures, cachedOutput, "obtain_quartz_block",
+                    TaskBuilder.task("Obtain Quartz Block")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("dimension_nether").requiredAbility("break_quartz")
+                            .target(1)
+                            .matches("minecraft:quartz_block"));
 
             save(futures, cachedOutput, "obtain_enchantment_table",
                     TaskBuilder.task("Obtain Enchantment Table")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("breaking_obsidian")
+                            .requiredAbility("break_obsidian")
                             .target(1)
                             .matches("minecraft:enchanting_table"));
 

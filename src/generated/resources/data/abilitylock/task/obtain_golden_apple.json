@@ -2,7 +2,7 @@
   "type": "abilitylock:item_obtain_task",
   "display_name": "Obtain Golden Apple",
   "required_abilities": [
-    "abilitylock:breaking_gold"
+    "abilitylock:break_gold"
   ],
   "targets": [
     "minecraft:golden_apple"

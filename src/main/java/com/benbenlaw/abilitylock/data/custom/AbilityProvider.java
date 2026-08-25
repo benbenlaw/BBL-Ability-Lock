@@ -180,6 +180,12 @@ public class AbilityProvider implements DataProvider {
                             .parent("dimension_nether")
                             .targets("minecraft:netherrack", "minecraft:warped_nylium", "minecraft:crimson_nylium"));
 
+            save(futures, cachedOutput,"break_quartz",
+                    AbilityBuilder.ability("Breaking Quartz")
+                            .type(AbilityTypes.BLOCK_BREAK)
+                            .parent("break_netherrack")
+                            .targets("minecraft:nether_quartz_ore", "minecraft:quartz_block"));
+
             //Dimensions
             save(futures, cachedOutput, "dimension_nether",
                     AbilityBuilder.ability("Nether Travel")

@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Quartz Block",
+  "required_abilities": [
+    "abilitylock:dimension_nether",
+    "abilitylock:break_quartz"
+  ],
+  "targets": [
+    "minecraft:quartz_block"
+  ]
+}

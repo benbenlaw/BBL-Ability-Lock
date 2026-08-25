@@ -2,7 +2,7 @@
   "type": "abilitylock:item_obtain_task",
   "display_name": "Obtain Enchantment Table",
   "required_abilities": [
-    "abilitylock:breaking_obsidian"
+    "abilitylock:break_obsidian"
   ],
   "targets": [
     "minecraft:enchanting_table"

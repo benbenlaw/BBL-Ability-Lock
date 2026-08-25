@@ -5,7 +5,8 @@
     "abilitylock:obtain_gold_pickaxe"
   ],
   "required_abilities": [
-    "abilitylock:crafting_diamond_tools"
+    "abilitylock:crafting_diamond_tools",
+    "abilitylock:break_diamond"
   ],
   "targets": [
     "minecraft:diamond_pickaxe"

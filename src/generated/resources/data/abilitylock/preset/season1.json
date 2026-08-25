@@ -1,0 +1,37 @@
+{
+  "bonus_ability_percentage": 25,
+  "default_grid_size": 5,
+  "display_name": "Season 1",
+  "immediate_task_percentage": 15,
+  "on_death_lose_world": true,
+  "starting_abilities": [
+    "abilitylock:forward"
+  ],
+  "valid_tasks": [
+    "abilitylock:mine_dirt",
+    "abilitylock:mine_sand",
+    "abilitylock:mine_gravel",
+    "abilitylock:mine_stone",
+    "abilitylock:kill_zombie",
+    "abilitylock:kill_skeleton",
+    "abilitylock:kill_creeper",
+    "abilitylock:kill_spider",
+    "abilitylock:kill_pig",
+    "abilitylock:kill_chicken",
+    "abilitylock:kill_cow",
+    "abilitylock:obtain_furnace",
+    "abilitylock:obtain_iron_pickaxe",
+    "abilitylock:obtain_copper_pickaxe",
+    "abilitylock:obtain_stone_pickaxe",
+    "abilitylock:obtain_wooden_pickaxe",
+    "abilitylock:obtain_redstone_block",
+    "abilitylock:obtain_lapis_block",
+    "abilitylock:obtain_granite",
+    "abilitylock:obtain_andesite",
+    "abilitylock:obtain_diorite",
+    "abilitylock:obtain_saddle",
+    "abilitylock:obtain_logs",
+    "abilitylock:obtain_crafting_table",
+    "abilitylock:obtain_cobblestone"
+  ]
+}

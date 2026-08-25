@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:block_break_ability",
+  "display_name": "Breaking Quartz",
+  "parents": [
+    "abilitylock:break_netherrack"
+  ],
+  "targets": [
+    "minecraft:nether_quartz_ore",
+    "minecraft:quartz_block"
+  ]
+}

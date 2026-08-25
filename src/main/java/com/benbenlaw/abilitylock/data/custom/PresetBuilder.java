@@ -17,6 +17,7 @@ public class PresetBuilder {
     private Integer defaultGridSize;
     private Integer immediateTaskPercentage;
     private int bonusAbilityPercentage = 0;
+    private final List<Identifier> validTasks = new ArrayList<>();
 
     private PresetBuilder(String displayName) {
         this.displayName = displayName;
@@ -74,6 +75,21 @@ public class PresetBuilder {
         return this;
     }
 
+    /** If never called, the preset can select from every registered task (unrestricted) - same "empty = unrestricted" convention as unlockableAbilities. */
+    public PresetBuilder validTask(Identifier id) {
+        this.validTasks.add(id);
+        return this;
+    }
+
+    public PresetBuilder validTask(String path) {
+        return validTask(AbilityLock.identifier(path));
+    }
+
+    public PresetBuilder validTasks(String... paths) {
+        for (String path : paths) validTask(path);
+        return this;
+    }
+
     public PresetData build() {
         return new PresetData(
                 displayName,
@@ -82,7 +98,8 @@ public class PresetBuilder {
                 List.copyOf(unlockableAbilities),
                 Optional.ofNullable(defaultGridSize),
                 Optional.ofNullable(immediateTaskPercentage),
-                bonusAbilityPercentage
+                bonusAbilityPercentage,
+                List.copyOf(validTasks)
         );
     }
 }

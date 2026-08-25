@@ -6,6 +6,8 @@ import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.network.packet.SyncAbilityLockPacket;
+import com.benbenlaw.abilitylock.presets.PresetData;
+import com.benbenlaw.abilitylock.presets.PresetLoader;
 import com.benbenlaw.abilitylock.task.TaskLoader;
 import com.benbenlaw.abilitylock.task.TaskManager;
 import com.benbenlaw.abilitylock.task.TaskType;
@@ -33,6 +35,10 @@ public class AbilityLockCommand {
     private static final SuggestionProvider<CommandSourceStack> TASK_SUGGESTIONS = (ctx, builder) ->
             SharedSuggestionProvider.suggest(
                     TaskLoader.TASKS.keySet().stream().map(Identifier::toString).toList(), builder);
+
+    private static final SuggestionProvider<CommandSourceStack> PRESET_SUGGESTIONS = (ctx, builder) ->
+            SharedSuggestionProvider.suggest(
+                    PresetLoader.DATA.keySet().stream().map(Identifier::toString).toList(), builder);
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(
@@ -119,7 +125,236 @@ public class AbilityLockCommand {
                                         )
                                 )
                         )
+                        .then(Commands.literal("validate")
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                .executes(AbilityLockCommand::validateData)
+                                .then(Commands.literal("preset")
+                                        .then(Commands.argument("preset", StringArgumentType.greedyString())
+                                                .suggests(PRESET_SUGGESTIONS)
+                                                .executes(AbilityLockCommand::validatePreset)
+                                        )
+                                )
+                                .then(Commands.literal("ability")
+                                        .then(Commands.argument("ability", StringArgumentType.greedyString())
+                                                .suggests(ABILITY_SUGGESTIONS)
+                                                .executes(AbilityLockCommand::validateAbility)
+                                        )
+                                )
+                                .then(Commands.literal("task")
+                                        .then(Commands.argument("task", StringArgumentType.greedyString())
+                                                .suggests(TASK_SUGGESTIONS)
+                                                .executes(AbilityLockCommand::validateTask)
+                                        )
+                                )
+                        )
         );
+    }
+
+    private static int validateAbility(CommandContext<CommandSourceStack> ctx) {
+        Identifier abilityId = getAbilityId(ctx);
+        if (abilityId == null) return 0;
+
+        if (!AbilityLoader.DATA.containsKey(abilityId)) {
+            ctx.getSource().sendFailure(Component.literal("Unknown ability: " + abilityId));
+            return 0;
+        }
+
+        Set<Identifier> closure = new HashSet<>(AbilityLoader.withAncestors(abilityId));
+        closure.remove(abilityId);
+
+        String targetName = displayNameOf(abilityId);
+
+        if (closure.isEmpty()) {
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    "'" + targetName + "' (" + abilityId + ") has no prerequisites - it's a root ability."), false);
+            return 1;
+        }
+
+        ctx.getSource().sendSuccess(() -> Component.literal(
+                "'" + targetName + "' (" + abilityId + ") requires " + closure.size() + " prerequisite ability(ies):"), false);
+
+        closure.stream()
+                .sorted(Comparator.comparing(Identifier::toString))
+                .forEach(id -> {
+                    boolean exists = AbilityLoader.DATA.containsKey(id);
+                    String label = exists ? displayNameOf(id) : (id + " (MISSING - dangling reference!)");
+                    ctx.getSource().sendSuccess(() -> Component.literal(" - " + label), false);
+                });
+
+        return 1;
+    }
+
+    private static int validateTask(CommandContext<CommandSourceStack> ctx) {
+        Identifier taskId = getTaskId(ctx);
+        if (taskId == null) return 0;
+
+        TaskType task = TaskLoader.TASKS.get(taskId);
+        if (task == null) {
+            ctx.getSource().sendFailure(Component.literal("Unknown task: " + taskId));
+            return 0;
+        }
+
+        String targetName = task.getData().displayName();
+
+        List<Identifier> parentTasks = task.getParents();
+        if (parentTasks.isEmpty()) {
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    "'" + targetName + "' (" + taskId + ") has no parent tasks."), false);
+        } else {
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    "'" + targetName + "' (" + taskId + ") has " + parentTasks.size() + " parent task(s):"), false);
+            for (Identifier parentTaskId : parentTasks) {
+                TaskType parentTask = TaskLoader.TASKS.get(parentTaskId);
+                String label = parentTask != null
+                        ? parentTask.getData().displayName() + " (" + parentTaskId + ")"
+                        : parentTaskId + " (MISSING - dangling reference!)";
+                ctx.getSource().sendSuccess(() -> Component.literal(" - " + label), false);
+            }
+        }
+
+        Set<Identifier> closure = TaskManager.totalAbilityCost(List.of(taskId));
+
+        if (closure.isEmpty()) {
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    "'" + targetName + "' (" + taskId + ") requires no abilities."), false);
+            return 1;
+        }
+
+        ctx.getSource().sendSuccess(() -> Component.literal(
+                "'" + targetName + "' (" + taskId + ") requires " + closure.size() + " ability(ies) in total (including parent task chain):"), false);
+
+        closure.stream()
+                .sorted(Comparator.comparing(Identifier::toString))
+                .forEach(id -> {
+                    boolean exists = AbilityLoader.DATA.containsKey(id);
+                    String label = exists ? displayNameOf(id) : (id + " (MISSING - dangling reference!)");
+                    ctx.getSource().sendSuccess(() -> Component.literal(" - " + label), false);
+                });
+
+        return 1;
+    }
+
+    private static int validatePreset(CommandContext<CommandSourceStack> ctx) {
+        String raw = StringArgumentType.getString(ctx, "preset");
+        Identifier presetId;
+        try {
+            presetId = Identifier.parse(raw);
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Invalid preset id: " + raw));
+            return 0;
+        }
+
+        PresetData preset = PresetLoader.DATA.get(presetId);
+        if (preset == null) {
+            ctx.getSource().sendFailure(Component.literal("Unknown preset: " + presetId));
+            return 0;
+        }
+
+        List<String> issues = new ArrayList<>();
+
+        for (Identifier abilityId : preset.startingAbilities()) {
+            if (!AbilityLoader.DATA.containsKey(abilityId)) {
+                issues.add("Starting ability '" + abilityId + "' does not exist");
+            }
+        }
+        for (Identifier abilityId : preset.unlockableAbilities()) {
+            if (!AbilityLoader.DATA.containsKey(abilityId)) {
+                issues.add("Unlockable ability '" + abilityId + "' does not exist");
+            }
+        }
+        for (Identifier taskId : preset.validTasks()) {
+            if (!TaskLoader.TASKS.containsKey(taskId)) {
+                issues.add("valid_tasks references unknown task '" + taskId + "'");
+            }
+        }
+
+        if (!issues.isEmpty()) {
+            ctx.getSource().sendFailure(Component.literal("Preset '" + presetId + "' has " + issues.size() + " issue(s):"));
+            for (String issue : issues) {
+                ctx.getSource().sendFailure(Component.literal(" - " + issue));
+            }
+            return 0;
+        }
+
+        if (!preset.restrictsTasks()) {
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    "Preset '" + presetId + "' is unrestricted (no valid_tasks) - grid construction " +
+                            "selects from the full task pool and trims automatically, no fixed cardinality concern."), false);
+            return 1;
+        }
+
+        Set<Identifier> totalCost = TaskManager.totalAbilityCost(preset.validTasks());
+        int neededAbilities = totalCost.size();
+        int totalTasks = preset.validTasks().size();
+        int required = Math.max(neededAbilities, totalTasks);
+
+        if (preset.defaultGridSize().isPresent()) {
+            int size = preset.defaultGridSize().get();
+            int budget = size * size;
+            boolean fits = required <= budget;
+
+            if (fits) {
+                ctx.getSource().sendSuccess(() -> Component.literal(
+                        "Preset '" + presetId + "': " + totalTasks + " valid task(s) need " + neededAbilities +
+                                " distinct abilities. Fits within the locked " + size + "x" + size + " grid (" + budget + " budget)."), false);
+                return 1;
+            } else {
+                ctx.getSource().sendFailure(Component.literal(
+                        "Preset '" + presetId + "': " + totalTasks + " valid task(s) need " + neededAbilities +
+                                " distinct abilities, but the locked grid size " + size + "x" + size + " only allows " + budget +
+                                " grants. Raise default_grid_size or trim valid_tasks."));
+                return 0;
+            }
+        }
+
+        int minSize = (int) Math.ceil(Math.sqrt(required));
+        ctx.getSource().sendSuccess(() -> Component.literal(
+                "Preset '" + presetId + "': " + totalTasks + " valid task(s) need " + neededAbilities +
+                        " distinct abilities. No locked grid size - needs at least " + minSize + "x" + minSize + " to fully fit."), false);
+        return 1;
+    }
+
+    private static int validateData(CommandContext<CommandSourceStack> ctx) {
+        List<String> issues = new ArrayList<>();
+
+        for (Map.Entry<Identifier, AbilityData> entry : AbilityLoader.DATA.entrySet()) {
+            Identifier abilityId = entry.getKey();
+            for (Identifier parent : entry.getValue().parents()) {
+                if (!AbilityLoader.DATA.containsKey(parent)) {
+                    issues.add("Ability '" + abilityId + "' has unknown parent ability '" + parent + "'");
+                }
+            }
+        }
+
+        for (Map.Entry<Identifier, TaskType> entry : TaskLoader.TASKS.entrySet()) {
+            Identifier taskId = entry.getKey();
+            TaskType task = entry.getValue();
+
+            for (Identifier abilityId : task.getRequiredAbilities()) {
+                if (!AbilityLoader.DATA.containsKey(abilityId)) {
+                    issues.add("Task '" + taskId + "' requires unknown ability '" + abilityId + "'");
+                }
+            }
+
+            for (Identifier parentTaskId : task.getParents()) {
+                if (!TaskLoader.TASKS.containsKey(parentTaskId)) {
+                    issues.add("Task '" + taskId + "' has unknown parent task '" + parentTaskId + "'");
+                }
+            }
+        }
+
+        if (issues.isEmpty()) {
+            ctx.getSource().sendSuccess(() -> Component.literal(
+                    "Validation passed: " + AbilityLoader.DATA.size() + " abilities, " +
+                            TaskLoader.TASKS.size() + " tasks - no dangling references found."), false);
+            return 1;
+        }
+
+        ctx.getSource().sendFailure(Component.literal("Validation found " + issues.size() + " issue(s):"));
+        for (String issue : issues) {
+            ctx.getSource().sendFailure(Component.literal(" - " + issue));
+        }
+        return 0;
     }
 
     private static @Nullable Identifier getAbilityId(CommandContext<CommandSourceStack> ctx) {

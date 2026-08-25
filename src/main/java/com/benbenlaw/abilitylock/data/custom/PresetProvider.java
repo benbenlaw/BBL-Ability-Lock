@@ -42,6 +42,42 @@ public class PresetProvider implements DataProvider {
                     .immediateTaskPercentage(15)
                     .bonusAbilityPercentage(10));
 
+            //Season 1
+            save(futures, cachedOutput, "season1", PresetBuilder
+                    .preset("Season 1")
+                    .startingAbilities("forward", "jump")
+                    .onDeathLoseWorld(true)
+                    .defaultGridSize(5)
+                    .immediateTaskPercentage(15)
+                    .bonusAbilityPercentage(25)
+                    .validTasks(
+                            "mine_dirt",
+                            "mine_sand",
+                            "mine_gravel",
+                            "mine_stone",
+                            "kill_zombie",
+                            "kill_skeleton",
+                            "kill_creeper",
+                            "kill_spider",
+                            "kill_pig",
+                            "kill_chicken",
+                            "kill_cow",
+                            "obtain_furnace",
+                            "obtain_iron_pickaxe",
+                            "obtain_copper_pickaxe",
+                            "obtain_stone_pickaxe",
+                            "obtain_wooden_pickaxe",
+                            "obtain_redstone_block",
+                            "obtain_lapis_block",
+                            "obtain_granite",
+                            "obtain_andesite",
+                            "obtain_diorite",
+                            "obtain_saddle",
+                            "obtain_logs",
+                            "obtain_crafting_table",
+                            "obtain_cobblestone"
+                    )
+            );
 
             return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
         });

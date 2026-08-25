@@ -33,13 +33,18 @@ public abstract class KeyboardInputMixin {
         boolean right = keyPresses.right() && isMovementAllowed(player, "right");
         boolean jump = keyPresses.jump() && isMovementAllowed(player, "jump");
         boolean shift = keyPresses.shift() && isMovementAllowed(player, "crouch");
-        boolean sprint = keyPresses.sprint() && isMovementAllowed(player, "sprint");
+        boolean sprintAllowed = isMovementAllowed(player, "sprint");
+        boolean sprint = keyPresses.sprint() && sprintAllowed;
 
         accessor.abilitylock$setKeyPresses(new Input(forward, backward, left, right, jump, shift, sprint));
 
         float forwardImpulse = calculateImpulse(forward, backward);
         float leftImpulse = calculateImpulse(left, right);
         accessor.abilitylock$setMoveVector(new Vec2(leftImpulse, forwardImpulse).normalized());
+
+        if (!sprintAllowed && player.isSprinting()) {
+            player.setSprinting(false);
+        }
     }
 
     private static boolean isMovementAllowed(Player player, String target) {

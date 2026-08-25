@@ -1,4 +1,4 @@
-// 26.1.2	2026-08-18T11:14:44.5471604	abilitylock Abilities
+// 26.1.2	2026-08-25T13:20:14.0175248	abilitylock Abilities
 b2ea2d6ab888423584513dff3840cf0640f33bf5 data/abilitylock/ability/anvil.json
 3d04bbde0f86a2ff9eebd3574481153bdf033247 data/abilitylock/ability/backward.json
 6d6fbef86f2a55fab102b2a36dbb33ae8c66221b data/abilitylock/ability/blast_furnace.json
@@ -15,6 +15,7 @@ a2acc245a744414953019212efbf3fade946d9ff data/abilitylock/ability/break_iron.jso
 e538634a07a465f79b82b9146e234f94d8efe3b8 data/abilitylock/ability/break_logs.json
 9e4f04ecb550acbaf6b04a2665d06c0078aef956 data/abilitylock/ability/break_netherrack.json
 8cc2c4205beb92b1544ea1dd6c1f46ba22c996cc data/abilitylock/ability/break_obsidian.json
+76f0c764d6149a8d17c9f670b9f7dc9b95dfb260 data/abilitylock/ability/break_quartz.json
 d7e88cf821bf321972ca5ce6febcfe74633c5f0e data/abilitylock/ability/break_redstone.json
 cbef27cd79c81e8aa42d4ec3bdadc6b70a17018b data/abilitylock/ability/break_stone.json
 01d2be19516351496f7c05ab383769cb41907076 data/abilitylock/ability/chests.json

@@ -24,6 +24,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Mixin(targets = "net.minecraft.client.gui.screens.worldselection.CreateWorldScreen$GameTab")
 public abstract class CreateWorldScreenGameTabMixin implements AbilityLockGameTabAccess {
@@ -39,6 +40,12 @@ public abstract class CreateWorldScreenGameTabMixin implements AbilityLockGameTa
 
     @Unique
     private int abilityLock$selectedGridHeight = 5;
+
+    @Unique
+    private @Nullable CycleButton<Integer> abilityLock$gridWidthButton;
+
+    @Unique
+    private @Nullable CycleButton<Integer> abilityLock$gridHeightButton;
 
     @ModifyVariable(method = "<init>", at = @At("TAIL"), name = "helper")
     private GridLayout.RowHelper abilityLock$appendWidgets(GridLayout.RowHelper helper) {
@@ -57,11 +64,15 @@ public abstract class CreateWorldScreenGameTabMixin implements AbilityLockGameTa
 
         LinearLayout presetRow = LinearLayout.horizontal().spacing(6);
 
+        assert this.abilityLock$selectedPreset != null;
         CycleButton<Identifier> presetButton = presetRow.addChild(CycleButton.builder(
                         this::abilityLock$labelFor, this.abilityLock$selectedPreset)
                 .withValues(knownPresets)
                 .create(0, 0, 184, 20, Component.literal("AbilityLock Preset"),
-                        (button, value) -> this.abilityLock$selectedPreset = value));
+                        (button, value) -> {
+                            this.abilityLock$selectedPreset = value;
+                            this.abilityLock$applyGridSizeLock(value);
+                        }));
 
         presetRow.addChild(Button.builder(Component.literal("i"),
                         (b) -> this.abilityLock$openPresetInfo())
@@ -70,21 +81,44 @@ public abstract class CreateWorldScreenGameTabMixin implements AbilityLockGameTa
 
         helper.addChild(presetRow);
 
-        CycleButton<Integer> gridWidthButton = CycleButton.builder(
+        this.abilityLock$gridWidthButton = CycleButton.builder(
                         (size) -> Component.literal(size + " wide"), this.abilityLock$selectedGridWidth)
                 .withValues(abilityLock$GRID_DIMENSIONS)
                 .create(0, 0, 210, 20, Component.literal("AbilityLock Grid Width"),
                         (button, value) -> this.abilityLock$selectedGridWidth = value);
-        helper.addChild(gridWidthButton);
+        helper.addChild(this.abilityLock$gridWidthButton);
 
-        CycleButton<Integer> gridHeightButton = CycleButton.builder(
+        this.abilityLock$gridHeightButton = CycleButton.builder(
                         (size) -> Component.literal(size + " tall"), this.abilityLock$selectedGridHeight)
                 .withValues(abilityLock$GRID_DIMENSIONS)
                 .create(0, 0, 210, 20, Component.literal("AbilityLock Grid Height"),
                         (button, value) -> this.abilityLock$selectedGridHeight = value);
-        helper.addChild(gridHeightButton);
+        helper.addChild(this.abilityLock$gridHeightButton);
+
+        this.abilityLock$applyGridSizeLock(this.abilityLock$selectedPreset);
 
         return helper;
+    }
+
+    @Unique
+    private void abilityLock$applyGridSizeLock(@Nullable Identifier presetId) {
+        if (this.abilityLock$gridWidthButton == null || this.abilityLock$gridHeightButton == null) return;
+
+        PresetData data = presetId != null ? PresetLoader.DATA.get(presetId) : null;
+        Optional<Integer> locked = data != null ? data.defaultGridSize() : Optional.empty();
+
+        if (locked.isPresent()) {
+            int size = locked.get();
+            this.abilityLock$selectedGridWidth = size;
+            this.abilityLock$selectedGridHeight = size;
+            this.abilityLock$gridWidthButton.setValue(size);
+            this.abilityLock$gridHeightButton.setValue(size);
+            this.abilityLock$gridWidthButton.active = false;
+            this.abilityLock$gridHeightButton.active = false;
+        } else {
+            this.abilityLock$gridWidthButton.active = true;
+            this.abilityLock$gridHeightButton.active = true;
+        }
     }
 
     @Unique

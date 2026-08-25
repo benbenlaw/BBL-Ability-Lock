@@ -35,6 +35,8 @@ public class ServerEvents {
 
     @SubscribeEvent
     public static void onAddReloadListener(AddServerReloadListenersEvent event) {
+        System.out.println("Registering reload listeners for AbilityLock");
+
         event.addListener(AbilityLock.identifier("ability"), new AbilityLoader());
         event.addListener(AbilityLock.identifier("preset"), new PresetLoader());
         event.addListener(AbilityLock.identifier("task"), new TaskLoader());
