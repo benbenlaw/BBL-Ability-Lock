@@ -5,8 +5,7 @@
   "immediate_task_percentage": 15,
   "on_death_lose_world": true,
   "starting_abilities": [
-    "abilitylock:forward",
-    "abilitylock:jump"
+    "abilitylock:forward"
   ],
   "valid_tasks": [
     "abilitylock:mine_dirt",

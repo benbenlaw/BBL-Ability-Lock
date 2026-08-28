@@ -45,7 +45,7 @@ public class PresetProvider implements DataProvider {
             //Season 1
             save(futures, cachedOutput, "season1", PresetBuilder
                     .preset("Season 1")
-                    .startingAbilities("forward", "jump")
+                    .startingAbilities("forward")
                     .onDeathLoseWorld(true)
                     .defaultGridSize(5)
                     .immediateTaskPercentage(15)
