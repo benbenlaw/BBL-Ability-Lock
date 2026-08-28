@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Coal Block",
+  "required_abilities": [
+    "abilitylock:break_coal"
+  ],
+  "targets": [
+    "minecraft:coal_block"
+  ]
+}

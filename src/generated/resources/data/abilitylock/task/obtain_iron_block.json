@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Iron Block",
+  "required_abilities": [
+    "abilitylock:break_iron"
+  ],
+  "targets": [
+    "minecraft:iron_block"
+  ]
+}

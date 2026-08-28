@@ -295,19 +295,43 @@ public class AbilityProvider implements DataProvider {
 
             save(futures, cachedOutput, "jump",
                     AbilityBuilder.ability("Jump")
-                            .parent("backward")
+                            .parent("climb")
                             .type(AbilityTypes.MOVEMENT_ABILITY)
                             .targets("jump"));
 
+            save(futures, cachedOutput, "double_jump",
+                    AbilityBuilder.ability("Double Jump")
+                            .parent("jump")
+                            .type(AbilityTypes.MOVEMENT_ABILITY)
+                            .targets("double_jump"));
+
+            save(futures, cachedOutput, "swim",
+                    AbilityBuilder.ability("Swim")
+                            .parent("crouch")
+                            .type(AbilityTypes.MOVEMENT_ABILITY)
+                            .targets("swim"));
+
+            save(futures, cachedOutput, "climb",
+                    AbilityBuilder.ability("Climb")
+                            .parent("backward")
+                            .type(AbilityTypes.MOVEMENT_ABILITY)
+                            .targets("climb"));
+
             save(futures, cachedOutput, "crouch",
                     AbilityBuilder.ability("Crouch")
-                            .parent("jump")
+                            .parent("climb")
                             .type(AbilityTypes.MOVEMENT_ABILITY)
                             .targets("crouch"));
 
+            save(futures, cachedOutput, "half_sprint",
+                    AbilityBuilder.ability("First Half Sprint")
+                            .parent("climb")
+                            .type(AbilityTypes.MOVEMENT_ABILITY)
+                            .targets("half_sprint"));
+
             save(futures, cachedOutput, "sprint",
                     AbilityBuilder.ability("Sprint")
-                            .parent("jump")
+                            .parent("half_sprint")
                             .type(AbilityTypes.MOVEMENT_ABILITY)
                             .targets("sprint"));
 

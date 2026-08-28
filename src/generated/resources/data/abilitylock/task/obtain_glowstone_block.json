@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Glowstone Block",
+  "required_abilities": [
+    "abilitylock:dimension_nether"
+  ],
+  "targets": [
+    "minecraft:glowstone"
+  ]
+}

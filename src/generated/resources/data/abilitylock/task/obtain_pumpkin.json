@@ -2,6 +2,7 @@
   "type": "abilitylock:item_obtain_task",
   "display_name": "Obtain Pumpkin",
   "targets": [
-    "minecraft:pumpkin"
+    "minecraft:pumpkin",
+    "minecraft:carved_pumpkin"
   ]
 }

@@ -1,10 +1,10 @@
 {
   "type": "abilitylock:movement_ability",
-  "display_name": "Sprint",
+  "display_name": "Swim",
   "parents": [
-    "abilitylock:half_sprint"
+    "abilitylock:crouch"
   ],
   "targets": [
-    "sprint"
+    "swim"
   ]
 }

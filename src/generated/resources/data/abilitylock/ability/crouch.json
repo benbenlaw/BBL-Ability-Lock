@@ -2,7 +2,7 @@
   "type": "abilitylock:movement_ability",
   "display_name": "Crouch",
   "parents": [
-    "abilitylock:jump"
+    "abilitylock:climb"
   ],
   "targets": [
     "crouch"

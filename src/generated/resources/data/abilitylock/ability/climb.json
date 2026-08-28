@@ -1,10 +1,10 @@
 {
   "type": "abilitylock:movement_ability",
-  "display_name": "Sprint",
+  "display_name": "Climb",
   "parents": [
-    "abilitylock:half_sprint"
+    "abilitylock:backward"
   ],
   "targets": [
-    "sprint"
+    "climb"
   ]
 }

@@ -1,10 +1,10 @@
 {
   "type": "abilitylock:movement_ability",
-  "display_name": "Sprint",
+  "display_name": "Double Jump",
   "parents": [
-    "abilitylock:half_sprint"
+    "abilitylock:jump"
   ],
   "targets": [
-    "sprint"
+    "double_jump"
   ]
 }

@@ -180,7 +180,7 @@ public class TaskProvider implements DataProvider {
                     TaskBuilder.task("Obtain Pumpkin")
                             .type(TaskTypes.ITEM_OBTAIN)
                             .target(1)
-                            .matches("minecraft:pumpkin"));
+                            .matches("minecraft:pumpkin", "minecraft:carved_pumpkin"));
 
             save(futures, cachedOutput, "obtain_wheat_seeds",
                     TaskBuilder.task("Obtain Wheat Seeds")
@@ -223,6 +223,34 @@ public class TaskProvider implements DataProvider {
                             .requiredAbility("dimension_nether").requiredAbility("break_quartz")
                             .target(1)
                             .matches("minecraft:quartz_block"));
+
+            save(futures, cachedOutput, "obtain_glowstone_block",
+                    TaskBuilder.task("Obtain Glowstone Block")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("dimension_nether")
+                            .target(1)
+                            .matches("minecraft:glowstone"));
+
+            save(futures, cachedOutput, "obtain_gold_block",
+                    TaskBuilder.task("Obtain Gold Block")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("break_gold")
+                            .target(1)
+                            .matches("minecraft:gold_block"));
+
+            save(futures, cachedOutput, "obtain_iron_block",
+                    TaskBuilder.task("Obtain Iron Block")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("break_iron")
+                            .target(1)
+                            .matches("minecraft:iron_block"));
+
+            save(futures, cachedOutput, "obtain_coal_block",
+                    TaskBuilder.task("Obtain Coal Block")
+                            .type(TaskTypes.ITEM_OBTAIN)
+                            .requiredAbility("break_coal")
+                            .target(1)
+                            .matches("minecraft:coal_block"));
 
             save(futures, cachedOutput, "obtain_enchantment_table",
                     TaskBuilder.task("Obtain Enchantment Table")

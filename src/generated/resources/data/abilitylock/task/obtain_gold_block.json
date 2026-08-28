@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_obtain_task",
+  "display_name": "Obtain Gold Block",
+  "required_abilities": [
+    "abilitylock:break_gold"
+  ],
+  "targets": [
+    "minecraft:gold_block"
+  ]
+}

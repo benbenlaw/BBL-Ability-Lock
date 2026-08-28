@@ -2,7 +2,7 @@
   "type": "abilitylock:movement_ability",
   "display_name": "Jump",
   "parents": [
-    "abilitylock:backward"
+    "abilitylock:climb"
   ],
   "targets": [
     "jump"
