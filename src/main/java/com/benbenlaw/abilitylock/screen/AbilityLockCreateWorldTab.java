@@ -2,6 +2,7 @@ package com.benbenlaw.abilitylock.screen;
 
 import com.benbenlaw.abilitylock.AbilityLock;
 import com.benbenlaw.abilitylock.config.ClientConfig;
+import com.benbenlaw.abilitylock.presets.PresetLoader;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.tabs.GridLayoutTab;
 import net.minecraft.client.gui.layouts.GridLayout;
@@ -43,18 +44,13 @@ public class AbilityLockCreateWorldTab extends GridLayoutTab {
     }
 
     private static List<Identifier> resolveKnownPresets() {
-        List<Identifier> result = new ArrayList<>();
-
-        for (String raw : ClientConfig.knownWorldPresets.get()) {
-            try {
-                result.add(Identifier.parse(raw));
-            } catch (Exception ignored) {
-            }
-        }
+        List<Identifier> result = PresetLoader.DATA.keySet().stream().toList();
 
         if (result.isEmpty()) {
-            result.add(AbilityLock.identifier("standard"));
+            AbilityLock.LOGGER.warn("No AbilityLock presets found! This is likely a misconfiguration.");
         }
+
+        System.out.println(result);
 
         return result;
     }

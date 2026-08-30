@@ -141,20 +141,15 @@ public abstract class CreateWorldScreenGameTabMixin implements AbilityLockGameTa
 
     @Unique
     private static List<Identifier> abilityLock$resolveKnownPresets() {
-        List<Identifier> result = new ArrayList<>();
+        List<Identifier> results = new ArrayList<>(PresetLoader.DATA.keySet());
 
-        for (String raw : ClientConfig.knownWorldPresets.get()) {
-            try {
-                result.add(Identifier.parse(raw));
-            } catch (Exception ignored) {
-            }
+        if (results.isEmpty()) {
+            results.add(AbilityLock.identifier("standard"));
         }
 
-        if (result.isEmpty()) {
-            result.add(AbilityLock.identifier("standard"));
-        }
+        System.out.println(results);
 
-        return result;
+        return results;
     }
 
     @Override

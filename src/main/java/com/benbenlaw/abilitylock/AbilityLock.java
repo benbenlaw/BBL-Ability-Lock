@@ -1,19 +1,27 @@
 package com.benbenlaw.abilitylock;
 
+import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.ability.AbilityTypes;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.config.ClientConfig;
 import com.benbenlaw.abilitylock.config.ServerConfig;
 import com.benbenlaw.abilitylock.network.AbilityLockNetworking;
+import com.benbenlaw.abilitylock.presets.PresetData;
+import com.benbenlaw.abilitylock.presets.PresetLoader;
 import com.benbenlaw.abilitylock.task.TaskTypes;
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(AbilityLock.MOD_ID)
@@ -26,10 +34,11 @@ public class AbilityLock {
         AbilityTypes.init();
         TaskTypes.init();
 
-
         AbilityLockAttachments.ATTACHMENT_TYPES.register(eventBus);
 
         eventBus.addListener(this::commonSetup);
+
+
 
         modContainer.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC, "bbl/abilitylock/client.toml");
         modContainer.registerConfig(ModConfig.Type.SERVER, ServerConfig.SPEC, "bbl/abilitylock/server.toml");

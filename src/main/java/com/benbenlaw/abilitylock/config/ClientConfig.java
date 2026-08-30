@@ -11,7 +11,7 @@ public class ClientConfig {
 
     public static final ModConfigSpec.ConfigValue<Boolean> showMillisecondsInTimer;
     public static final ModConfigSpec.ConfigValue<Boolean> showAbilityLockWorldCreation;
-    public static final ModConfigSpec.ConfigValue<List<? extends String>> knownWorldPresets;
+    public static final ModConfigSpec.ConfigValue<String> defaultPreset;
 
     static {
         BUILDER.comment("BBL Ability Lock Client Config");
@@ -24,14 +24,11 @@ public class ClientConfig {
         showAbilityLockWorldCreation = BUILDER.comment(
                         "Show the AbilityLock world creation options - the shortcut button on " +
                                 "Select World, and the AbilityLock tab on Create World.")
-                .define("showAbilityLockWorldCreation", true);
+                .define("Show Ability Lock Screen", true);
 
-        knownWorldPresets = BUILDER
-                .comment("List of known world presets that can be selected from the Create World Screen.")
-                .defineList("knownWorldPresets",
-                        List.of("abilitylock:standard", "abilitylock:hardcore"),
-                        () -> "abilitylock:standard",
-                        obj -> obj instanceof String);
+        defaultPreset = BUILDER
+                .comment("The default preset of the Ability Lock.")
+                .define("Default Preset", "season1");
 
         BUILDER.pop();
 

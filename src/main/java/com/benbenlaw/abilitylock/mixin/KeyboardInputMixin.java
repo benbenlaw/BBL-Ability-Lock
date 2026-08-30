@@ -38,8 +38,7 @@ public abstract class KeyboardInputMixin {
         ClientInputAccessor accessor = (ClientInputAccessor) (Object) this;
         Input keyPresses = accessor.abilitylock$getKeyPresses();
 
-        boolean waterBlocked = player.isInWater() && !isMovementAllowed(player, "swim");
-
+        boolean waterBlocked = player.isUnderWater() && !isMovementAllowed(player, "swim");
         boolean forward = keyPresses.forward() && isMovementAllowed(player, "forward") && !waterBlocked;
         boolean backward = keyPresses.backward() && isMovementAllowed(player, "backward") && !waterBlocked;
         boolean left = keyPresses.left() && isMovementAllowed(player, "left") && !waterBlocked;

@@ -4,8 +4,12 @@ import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.network.packet.StopSpeedrunTimerPacket;
+import com.benbenlaw.abilitylock.presets.PresetData;
+import com.benbenlaw.abilitylock.presets.PresetLoader;
 import com.benbenlaw.abilitylock.task.TaskType;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -28,17 +32,30 @@ public class SpeedrunManager {
         String finalTaskName = PENDING_FINAL_TASK.remove(player.getUUID());
         if (finalTaskName == null) return;
 
+        String presetName = resolvePresetName(player);
         String formattedTime = SpeedrunTimeUtil.format(elapsedMillis);
         List<String> unlockedNames = unlockedAbilityNames(player);
 
-        Component summary = Component.literal(
-                player.getGameProfile().name() + " finished the speedrun in " + formattedTime
-                        + " (Final task: " + finalTaskName + ")");
+        String messageText = player.getGameProfile().name() + " completed " + presetName + " in " + formattedTime + "!";
+
+        Component summary = Component.literal(messageText)
+                .withStyle(style -> style
+                        .withClickEvent(new ClickEvent.CopyToClipboard(messageText))
+                        .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to copy"))));
+
         player.level().getServer().getPlayerList().broadcastSystemMessage(summary, false);
 
         Component abilities = Component.literal("Unlocked abilities: " +
                 (unlockedNames.isEmpty() ? "None" : String.join(", ", unlockedNames)));
         player.level().getServer().getPlayerList().broadcastSystemMessage(abilities, false);
+    }
+
+    private static String resolvePresetName(ServerPlayer player) {
+        AbilityLockData data = player.getData(AbilityLockAttachments.ABILITY_LOCK);
+        if (data.presetId().isEmpty()) return "their run";
+
+        PresetData preset = PresetLoader.DATA.get(data.presetId().get());
+        return preset != null ? preset.displayName() : data.presetId().get().toString();
     }
 
     private static List<String> unlockedAbilityNames(ServerPlayer player) {
