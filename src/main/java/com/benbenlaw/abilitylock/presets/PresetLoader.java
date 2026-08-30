@@ -13,7 +13,7 @@ import java.util.*;
 
 public class PresetLoader extends SimpleJsonResourceReloadListener<PresetData> {
 
-    public static final Map<Identifier, PresetData> DATA = new HashMap<>();
+    public static final Map<Identifier, PresetData> DATA = new LinkedHashMap<>();
 
     public PresetLoader() {
         super(PresetData.CODEC, FileToIdConverter.json("preset"));
@@ -48,9 +48,16 @@ public class PresetLoader extends SimpleJsonResourceReloadListener<PresetData> {
         List<Identifier> ordered = new ArrayList<>(DATA.keySet());
         ordered.sort(Comparator.comparing(Identifier::toString));
 
-        Identifier defaultId = Identifier.parse(ClientConfig.defaultPreset.get());
-        if (ordered.remove(defaultId)) {
-            ordered.addFirst(defaultId);
+        AbilityLock.LOGGER.info("Default preset from config = '{}', available keys = {}",
+                ClientConfig.defaultPreset.get(), DATA.keySet());
+
+        try {
+            Identifier defaultId = Identifier.parse(ClientConfig.defaultPreset.get());
+            if (ordered.remove(defaultId)) {
+                ordered.addFirst(defaultId);
+            }
+        } catch (Exception e) {
+            AbilityLock.LOGGER.error("Failed to apply default preset ordering", e);
         }
 
         Map<Identifier, PresetData> reordered = new LinkedHashMap<>();

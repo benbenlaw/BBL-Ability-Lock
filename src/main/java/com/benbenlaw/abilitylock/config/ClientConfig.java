@@ -28,7 +28,7 @@ public class ClientConfig {
 
         defaultPreset = BUILDER
                 .comment("The default preset of the Ability Lock.")
-                .define("Default Preset", "season1");
+                .define("Default Preset", "abilitylock:season1");
 
         BUILDER.pop();
 
