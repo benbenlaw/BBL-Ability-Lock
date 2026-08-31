@@ -11,6 +11,7 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
+import net.neoforged.neoforge.common.Tags;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -249,7 +250,7 @@ public class AbilityProvider implements DataProvider {
                     AbilityBuilder.ability("Iron Tools")
                             .type(AbilityTypes.CRAFTING_ABILITY)
                             .parent("crafting_stone_tools")
-                            .targets("minecraft:iron_pickaxe", "minecraft:iron_axe", "minecraft:iron_shovel", "minecraft:iron_hoe", "minecraft:iron_sword"));
+                            .targets("minecraft:iron_pickaxe", "minecraft:iron_axe", "minecraft:iron_shovel", "minecraft:iron_hoe", "minecraft:iron_sword", "minecraft:saddle", "minecraft:shield"));
 
             save(futures, cachedOutput, "crafting_gold_tools",
                     AbilityBuilder.ability("Gold Tools")
@@ -329,15 +330,116 @@ public class AbilityProvider implements DataProvider {
                             .type(AbilityTypes.MOVEMENT_ABILITY)
                             .targets("half_sprint"));
 
-            save(futures, cachedOutput, "sprint",
-                    AbilityBuilder.ability("Sprint")
-                            .parent("half_sprint")
-                            .type(AbilityTypes.MOVEMENT_ABILITY)
-                            .targets("sprint"));
+            extracted(cachedOutput, futures);
 
+            //Entity Interactions
+            save(futures, cachedOutput, "entity_interact_villager",
+                    AbilityBuilder.ability("Trading")
+                            .parent("passive_mob_damage")
+                            .type(AbilityTypes.ENTITY_INTERACT)
+                            .targets("minecraft:villager"));
+
+            save(futures, cachedOutput, "entity_interact_pig",
+                    AbilityBuilder.ability("Pig Riding")
+                            .parent("crafting_iron_tools")
+                            .type(AbilityTypes.ENTITY_INTERACT)
+                            .targets("minecraft:pig"));
+
+            save(futures, cachedOutput, "entity_interact_horse",
+                    AbilityBuilder.ability("Horse Riding")
+                            .parent("crafting_iron_tools")
+                            .type(AbilityTypes.ENTITY_INTERACT)
+                            .targets("minecraft:horse", "minecraft:donkey", "minecraft:mule", "minecraft:llama"));
+
+            save(futures, cachedOutput, "entity_interact_piglin",
+                    AbilityBuilder.ability("Piglin Bartering")
+                            .parent("crafting_gold_tools")
+                            .type(AbilityTypes.ENTITY_INTERACT)
+                            .targets("minecraft:piglin"));
+
+            save(futures, cachedOutput, "entity_interact_strider",
+                    AbilityBuilder.ability("Striding Riding")
+                            .parent("dimension_nether")
+                            .type(AbilityTypes.ENTITY_INTERACT)
+                            .targets("minecraft:strider"));
+
+            save(futures, cachedOutput, "entity_interact_happy_ghast",
+                    AbilityBuilder.ability("Happy Ghast Riding")
+                            .parent("dimension_nether")
+                            .type(AbilityTypes.ENTITY_INTERACT)
+                            .targets("minecraft:happy_ghast"));
+
+            save(futures, cachedOutput, "entity_interact_sheep",
+                    AbilityBuilder.ability("Shearing")
+                            .parent("crafting_iron_tools")
+                            .type(AbilityTypes.ENTITY_INTERACT)
+                            .targets("minecraft:sheep","minecraft:mooshroom"));
+
+            save(futures, cachedOutput, "entity_interact_cow",
+                    AbilityBuilder.ability("Milking")
+                            .parent("crafting_iron_tools")
+                            .type(AbilityTypes.ENTITY_INTERACT)
+                            .targets("minecraft:cow", "minecraft:goat"));
+
+            save(futures, cachedOutput, "entity_interact_boat",
+                    AbilityBuilder.ability("Sailing")
+                            .parent("crouch")
+                            .type(AbilityTypes.ENTITY_INTERACT)
+                            .targets("minecraft:boat"));
+
+            //Item Locks
+            save(futures, cachedOutput, "item_interact_bow",
+                    AbilityBuilder.ability("Using Bows")
+                            .parent("passive_mob_damage")
+                            .type(AbilityTypes.ITEM_INTERACT)
+                            .targets("minecraft:bow"));
+
+            save(futures, cachedOutput, "item_interact_food",
+                    AbilityBuilder.ability("Eating Food")
+                            .parent("furnace")
+                            .type(AbilityTypes.ITEM_INTERACT)
+                            .targetTag(Tags.Items.FOODS.location()));
+
+            save(futures, cachedOutput, "item_interact_shield",
+                    AbilityBuilder.ability("Using Shields")
+                            .parent("crafting_iron_tools")
+                            .type(AbilityTypes.ITEM_INTERACT)
+                            .targets("minecraft:shield"));
+
+            save(futures, cachedOutput, "item_interact_crossbow",
+                    AbilityBuilder.ability("Using Crossbows")
+                            .parent("item_interact_bow")
+                            .type(AbilityTypes.ITEM_INTERACT)
+                            .targets("minecraft:crossbow"));
+
+            save(futures, cachedOutput, "item_interact_fishing_rod",
+                    AbilityBuilder.ability("Using Fishing Rods")
+                            .parent("item_interact_food")
+                            .type(AbilityTypes.ITEM_INTERACT)
+                            .targets("minecraft:fishing_rod"));
+
+            save(futures, cachedOutput, "item_interact_ender_pearl",
+                    AbilityBuilder.ability("Using Ender Pearls")
+                            .parent("hostile_overworld_mob_damage")
+                            .type(AbilityTypes.ITEM_INTERACT)
+                            .targets("minecraft:ender_pearl"));
+
+            save(futures, cachedOutput, "item_interact_eye_of_ender",
+                    AbilityBuilder.ability("Using Eye of Enders")
+                            .parent("item_interact_ender_pearl")
+                            .type(AbilityTypes.ITEM_INTERACT)
+                            .targets("minecraft:ender_eye"));
 
             return CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new));
         });
+    }
+
+    private void extracted(CachedOutput cachedOutput, List<CompletableFuture<?>> futures) {
+        save(futures, cachedOutput, "sprint",
+                AbilityBuilder.ability("Sprint")
+                        .parent("half_sprint")
+                        .type(AbilityTypes.MOVEMENT_ABILITY)
+                        .targets("sprint"));
     }
 
 

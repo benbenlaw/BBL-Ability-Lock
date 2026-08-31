@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:stat_task",
+  "display_name": "Trade with a Villager",
+  "required_abilities": [
+    "abilitylock:entity_interact_villager"
+  ],
+  "targets": [
+    "minecraft:traded_with_villager"
+  ]
+}

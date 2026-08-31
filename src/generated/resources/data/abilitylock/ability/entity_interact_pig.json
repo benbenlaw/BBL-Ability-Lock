@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:entity_interact_ability",
+  "display_name": "Pig Riding",
+  "parents": [
+    "abilitylock:crafting_iron_tools"
+  ],
+  "targets": [
+    "minecraft:pig"
+  ]
+}

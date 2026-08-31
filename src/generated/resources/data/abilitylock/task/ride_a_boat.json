@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:stat_task",
+  "display_name": "Ride a Boat",
+  "required_abilities": [
+    "abilitylock:entity_interact_boat"
+  ],
+  "target": 20,
+  "targets": [
+    "minecraft:boat_one_cm"
+  ]
+}

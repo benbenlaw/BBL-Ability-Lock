@@ -7,10 +7,13 @@ import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.TaskProgressData;
 import com.benbenlaw.abilitylock.task.TaskLoader;
 import com.benbenlaw.abilitylock.task.TaskType;
+import com.benbenlaw.abilitylock.util.KeyBinds;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -81,7 +84,6 @@ public class TaskScreen extends Screen {
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         super.extractRenderState(graphics, mouseX, mouseY, a);
 
-        // Title bar stays fixed size, doesn't zoom with the grid.
         graphics.centeredText(this.font, this.title, this.width / 2, 12, 0xFFFFFFFF);
 
         if (this.minecraft == null || this.minecraft.player == null) return;
@@ -133,7 +135,6 @@ public class TaskScreen extends Screen {
                 tooltipComponents.add(ClientTooltipComponent.create(line.getVisualOrderText()));
             }
 
-            // Tooltip text isn't scaled - stays normal size regardless of grid zoom, same as vanilla tooltips.
             graphics.tooltip(this.font, tooltipComponents, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null);
         }
 
@@ -326,7 +327,23 @@ public class TaskScreen extends Screen {
     }
 
     @Override
+    public boolean keyPressed(KeyEvent event) {
+        InputConstants.Key key = InputConstants.getKey(event);
+
+        if (KeyBinds.TASK_SCREEN_HOTKEY.isActiveAndMatches(key)) {
+            this.onClose();
+            return true;
+        }
+        if (KeyBinds.ABILITY_SCREEN_HOTKEY.isActiveAndMatches(key)) {
+            this.minecraft.setScreen(new AbilityLockScreen());
+            return true;
+        }
+
+        return super.keyPressed(event);
+    }
+
+    @Override
     public boolean isPauseScreen() {
-        return false;
+        return true;
     }
 }

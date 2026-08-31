@@ -16,6 +16,7 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.StructureStart;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.StatAwardEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
@@ -75,5 +76,11 @@ public class TaskEvents {
                 }
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void onStatAward(StatAwardEvent event) {
+        if (!(event.getEntity() instanceof ServerPlayer player)) return;
+        TaskManager.handle(new TaskEvent.StatAward(player, event.getStat(), event.getValue()));
     }
 }

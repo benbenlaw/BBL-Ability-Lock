@@ -6,7 +6,8 @@
   ],
   "required_abilities": [
     "abilitylock:passive_mob_damage",
-    "abilitylock:break_iron"
+    "abilitylock:break_iron",
+    "abilitylock:crafting_iron_tools"
   ],
   "targets": [
     "minecraft:saddle"

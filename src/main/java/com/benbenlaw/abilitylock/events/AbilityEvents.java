@@ -5,18 +5,11 @@ import com.benbenlaw.abilitylock.ability.Ability;
 import com.benbenlaw.abilitylock.ability.AbilityData;
 import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.ability.abilities.*;
-import com.benbenlaw.abilitylock.events.client.ClientEvents;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.InputEvent;
-import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -66,6 +59,34 @@ public class AbilityEvents {
             if (data == null) continue;
 
             blockInteract.onRightClickBlock(event, data);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+        if (event.getHand() == InteractionHand.OFF_HAND) return;
+
+        for (Ability ability : AbilityLoader.ABILITIES.values()) {
+            if (!(ability instanceof EntityInteractAbility entityInteract)) continue;
+
+            AbilityData data = ability.getData();
+            if (data == null) continue;
+
+            entityInteract.onRightClickEntity(event, data);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onItemInteract(PlayerInteractEvent.RightClickItem event) {
+        if (event.getHand() == InteractionHand.OFF_HAND) return;
+
+        for (Ability ability : AbilityLoader.ABILITIES.values()) {
+            if (!(ability instanceof ItemInteractAbility itemInteract)) continue;
+
+            AbilityData data = ability.getData();
+            if (data == null) continue;
+
+            itemInteract.onRightClickItem(event, data);
         }
     }
 

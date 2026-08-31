@@ -276,7 +276,7 @@ public class TaskProvider implements DataProvider {
             save(futures, cachedOutput, "obtain_saddle",
                     TaskBuilder.task("Obtain Saddle")
                             .type(TaskTypes.ITEM_OBTAIN)
-                            .requiredAbility("passive_mob_damage").requiredAbility("break_iron")
+                            .requiredAbility("passive_mob_damage").requiredAbility("break_iron").requiredAbility("crafting_iron_tools")
                             .parent("obtain_leather")
                             .target(1)
                             .matches("minecraft:saddle"));
@@ -388,8 +388,48 @@ public class TaskProvider implements DataProvider {
                             .target(1)
                             .matches("minecraft:wither_skeleton"));
 
+            //Stats
+            save(futures, cachedOutput, "fishing",
+                    TaskBuilder.task("Catch a Fish")
+                            .type(TaskTypes.STAT_TASK)
+                            .requiredAbility("item_interact_fishing_rod")
+                            .target(1)
+                            .matches("minecraft:fish_caught"));
 
+            save(futures, cachedOutput, "trading",
+                    TaskBuilder.task("Trade with a Villager")
+                            .type(TaskTypes.STAT_TASK)
+                            .requiredAbility("entity_interact_villager")
+                            .target(1)
+                            .matches("minecraft:traded_with_villager"));
 
+            save(futures, cachedOutput, "ride_a_pig",
+                    TaskBuilder.task("Rid a Pig")
+                            .type(TaskTypes.STAT_TASK)
+                            .requiredAbility("entity_interact_pig")
+                            .target(20)
+                            .matches("minecraft:ride_one_cm"));
+
+            save(futures, cachedOutput, "ride_a_horse",
+                    TaskBuilder.task("Ride a Horse")
+                            .type(TaskTypes.STAT_TASK)
+                            .requiredAbility("entity_interact_horse")
+                            .target(20)
+                            .matches("minecraft:horse_one_cm"));
+
+            save(futures, cachedOutput, "ride_a_strider",
+                    TaskBuilder.task("Ride a Strider")
+                            .type(TaskTypes.STAT_TASK)
+                            .requiredAbility("entity_interact_strider").requiredAbility("dimension_nether")
+                            .target(20)
+                            .matches("minecraft:strider_one_cm"));
+
+            save(futures, cachedOutput, "ride_a_boat",
+                    TaskBuilder.task("Ride a Boat")
+                            .type(TaskTypes.STAT_TASK)
+                            .requiredAbility("entity_interact_boat")
+                            .target(20)
+                            .matches("minecraft:boat_one_cm"));
             //BOSSES
             //WIP
 

@@ -7,6 +7,7 @@ import com.benbenlaw.abilitylock.screen.AbilityLockScreen;
 import com.benbenlaw.abilitylock.screen.PendingAbilityLockWorldSettings;
 import com.benbenlaw.abilitylock.screen.TaskScreen;
 import com.benbenlaw.abilitylock.util.KeyBinds;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -25,20 +26,28 @@ public class ClientEvents {
 
     @SubscribeEvent
     public static void onClientPress(InputEvent.Key event) {
+        if (event.getAction() != InputConstants.PRESS) return;
 
         Screen currentScreen = Minecraft.getInstance().screen;
 
-        if (currentScreen == null) {
+        boolean taskKey = event.getKey() == KeyBinds.TASK_SCREEN_HOTKEY.getKey().getValue();
+        boolean abilityKey = event.getKey() == KeyBinds.ABILITY_SCREEN_HOTKEY.getKey().getValue();
 
-            if (event.getKeyEvent().key() == KeyBinds.TASK_SCREEN_HOTKEY.getKey().getValue()) {
+        if (taskKey) {
+            if (currentScreen instanceof TaskScreen) {
+                Minecraft.getInstance().setScreen(null);
+            } else {
                 Minecraft.getInstance().setScreen(new TaskScreen());
-            }
-
-            if (event.getKeyEvent().key() == KeyBinds.ABILITY_SCREEN_HOTKEY.getKey().getValue()) {
-                Minecraft.getInstance().setScreen(new AbilityLockScreen());
             }
         }
 
+        if (abilityKey) {
+            if (currentScreen instanceof AbilityLockScreen) {
+                Minecraft.getInstance().setScreen(null);
+            } else {
+                Minecraft.getInstance().setScreen(new AbilityLockScreen());
+            }
+        }
     }
 
     @SubscribeEvent

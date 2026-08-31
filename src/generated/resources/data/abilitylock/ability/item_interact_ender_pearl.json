@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_interact_ability",
+  "display_name": "Using Ender Pearls",
+  "parents": [
+    "abilitylock:hostile_overworld_mob_damage"
+  ],
+  "targets": [
+    "minecraft:ender_pearl"
+  ]
+}

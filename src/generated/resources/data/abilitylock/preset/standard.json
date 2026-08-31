@@ -1,7 +1,12 @@
 {
   "bonus_ability_percentage": 15,
   "display_name": "Standard",
+  "immediate_task_percentage": 5,
   "starting_abilities": [
-    "abilitylock:forward"
+    "abilitylock:forward",
+    "abilitylock:backward",
+    "abilitylock:climb",
+    "abilitylock:half_sprint",
+    "abilitylock:crouch"
   ]
 }

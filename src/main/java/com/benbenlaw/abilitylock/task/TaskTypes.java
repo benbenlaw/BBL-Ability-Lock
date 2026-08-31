@@ -15,6 +15,7 @@ public class TaskTypes {
     public static final Identifier ITEM_OBTAIN = AbilityLock.identifier("item_obtain_task");
     public static final Identifier ENTITY_KILL = AbilityLock.identifier("entity_kill_task");
     public static final Identifier STRUCTURE_LOCATE = AbilityLock.identifier("structure_locate_task");
+    public static final Identifier STAT_TASK = AbilityLock.identifier("stat_task");
 
     private static final Map<Identifier, Supplier<TaskType>> FACTORIES = new HashMap<>();
 
@@ -32,5 +33,6 @@ public class TaskTypes {
         register(ITEM_OBTAIN, ItemObtainTask::new);
         register(ENTITY_KILL, EntityKillTask::new);
         register(STRUCTURE_LOCATE, StructureLocateTask::new);
+        register(STAT_TASK, StatTask::new);
     }
 }

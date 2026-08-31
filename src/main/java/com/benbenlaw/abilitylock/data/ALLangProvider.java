@@ -23,6 +23,8 @@ public class ALLangProvider extends LanguageProvider {
         add("message.abilitylock.cant_travel_to_dimension", "Cannot travel, requires %s ability");
         add("message.abilitylock.cant_interact_with_block", "Cannot interact with this block, requires %s ability");
         add("message.abilitylock.cant_damage_entity", "Cannot deal damage to this mob, requires %s ability");
+        add("message.abilitylock.cant_interact_with_entity", "Cannot interact with this entity, requires %s ability");
+        add("message.abilitylock.cant_interact_with_item", "Cannot interact with this item, requires %s ability");
 
     }
 }

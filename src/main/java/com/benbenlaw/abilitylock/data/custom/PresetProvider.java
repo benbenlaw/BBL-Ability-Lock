@@ -30,17 +30,17 @@ public class PresetProvider implements DataProvider {
 
             save(futures, cachedOutput, "standard", PresetBuilder
                     .preset("Standard")
-                    .startingAbilities("forward")
+                    .startingAbilities("forward", "backward", "climb", "half_sprint", "crouch")
+                    .immediateTaskPercentage(5)
                     .bonusAbilityPercentage(15));
 
             save(futures, cachedOutput, "hardcore", PresetBuilder
                     .preset("Hardcore")
-                    .startingAbilities("forward")
-                    .unlockableAbilities("backward", "left", "right")
+                    .startingAbilities("forward", "backward", "climb", "half_sprint")
                     .onDeathLoseWorld(true)
-                    .defaultGridSize(5)
-                    .immediateTaskPercentage(15)
-                    .bonusAbilityPercentage(10));
+                    .defaultGridSize(7)
+                    .immediateTaskPercentage(5)
+                    .bonusAbilityPercentage(5));
 
             //Season 1
             save(futures, cachedOutput, "season1", PresetBuilder

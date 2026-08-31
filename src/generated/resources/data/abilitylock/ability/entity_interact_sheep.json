@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:entity_interact_ability",
+  "display_name": "Shearing",
+  "parents": [
+    "abilitylock:crafting_iron_tools"
+  ],
+  "targets": [
+    "minecraft:sheep",
+    "minecraft:mooshroom"
+  ]
+}

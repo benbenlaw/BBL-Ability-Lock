@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:stat_task",
+  "display_name": "Rid a Pig",
+  "required_abilities": [
+    "abilitylock:entity_interact_pig"
+  ],
+  "target": 20,
+  "targets": [
+    "minecraft:ride_one_cm"
+  ]
+}

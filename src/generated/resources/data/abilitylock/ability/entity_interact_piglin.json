@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:entity_interact_ability",
+  "display_name": "Piglin Bartering",
+  "parents": [
+    "abilitylock:crafting_gold_tools"
+  ],
+  "targets": [
+    "minecraft:piglin"
+  ]
+}

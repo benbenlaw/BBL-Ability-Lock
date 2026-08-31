@@ -1,0 +1,12 @@
+{
+  "type": "abilitylock:stat_task",
+  "display_name": "Ride a Strider",
+  "required_abilities": [
+    "abilitylock:entity_interact_strider",
+    "abilitylock:dimension_nether"
+  ],
+  "target": 20,
+  "targets": [
+    "minecraft:strider_one_cm"
+  ]
+}

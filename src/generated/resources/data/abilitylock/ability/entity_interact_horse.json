@@ -1,0 +1,13 @@
+{
+  "type": "abilitylock:entity_interact_ability",
+  "display_name": "Horse Riding",
+  "parents": [
+    "abilitylock:crafting_iron_tools"
+  ],
+  "targets": [
+    "minecraft:horse",
+    "minecraft:donkey",
+    "minecraft:mule",
+    "minecraft:llama"
+  ]
+}

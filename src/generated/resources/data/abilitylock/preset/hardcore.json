@@ -1,15 +1,13 @@
 {
-  "bonus_ability_percentage": 10,
-  "default_grid_size": 5,
+  "bonus_ability_percentage": 5,
+  "default_grid_size": 7,
   "display_name": "Hardcore",
-  "immediate_task_percentage": 15,
+  "immediate_task_percentage": 5,
   "on_death_lose_world": true,
   "starting_abilities": [
-    "abilitylock:forward"
-  ],
-  "unlockable_abilities": [
+    "abilitylock:forward",
     "abilitylock:backward",
-    "abilitylock:left",
-    "abilitylock:right"
+    "abilitylock:climb",
+    "abilitylock:half_sprint"
   ]
 }

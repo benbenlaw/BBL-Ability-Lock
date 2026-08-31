@@ -5,6 +5,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.event.StatAwardEvent;
 import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
@@ -21,6 +22,9 @@ public abstract class Ability {
     public void onEntityDamage(LivingDamageEvent.Pre event, AbilityData data) {}
     public void onDimensionTravel(EntityTravelToDimensionEvent event, Player player, ResourceKey<Level> targetDimension, AbilityData data) {}
     public void onRightClickBlock(PlayerInteractEvent.RightClickBlock event, AbilityData data) {}
+    public void onRightClickEntity(PlayerInteractEvent.EntityInteract event, AbilityData data) {}
+    public void onRightClickItem(PlayerInteractEvent.RightClickItem event, AbilityData data) {}
+    public void onStatAward(StatAwardEvent event, AbilityData data) {}
 
     public void setId(Identifier id) {
         this.id = id;

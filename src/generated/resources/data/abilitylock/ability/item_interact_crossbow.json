@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_interact_ability",
+  "display_name": "Using Crossbows",
+  "parents": [
+    "abilitylock:item_interact_bow"
+  ],
+  "targets": [
+    "minecraft:crossbow"
+  ]
+}

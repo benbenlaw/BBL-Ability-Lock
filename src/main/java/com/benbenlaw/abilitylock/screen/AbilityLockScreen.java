@@ -5,10 +5,13 @@ import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.task.TaskManager;
+import com.benbenlaw.abilitylock.util.KeyBinds;
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
 import net.minecraft.client.gui.screens.inventory.tooltip.DefaultTooltipPositioner;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -135,13 +138,13 @@ public class AbilityLockScreen extends Screen {
     private int computeDepth(Identifier id, Set<Identifier> visiting) {
         Integer cached = nodeDepth.get(id);
         if (cached != null) return cached;
-        if (!visiting.add(id)) return 0; // cycle guard
+        if (!visiting.add(id)) return 0;
 
         List<Identifier> parents = AbilityLoader.DATA.get(id).parents();
 
         int depth = 0;
         for (Identifier parent : parents) {
-            if (!AbilityLoader.DATA.containsKey(parent)) continue; // dangling parent reference
+            if (!AbilityLoader.DATA.containsKey(parent)) continue;
             depth = Math.max(depth, computeDepth(parent, visiting) + 1);
         }
 
@@ -170,7 +173,6 @@ public class AbilityLockScreen extends Screen {
     public void extractRenderState(@NonNull GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
         super.extractRenderState(graphics, mouseX, mouseY, a);
 
-        // Title bar stays fixed size, doesn't zoom with the tree.
         graphics.centeredText(this.font, this.title, this.width / 2, 12, 0xFFFFFFFF);
 
         if (this.minecraft.player == null) return;
@@ -225,7 +227,6 @@ public class AbilityLockScreen extends Screen {
                 tooltipComponents.add(ClientTooltipComponent.create(line.getVisualOrderText()));
             }
 
-            // Tooltip text isn't scaled - stays normal size regardless of tree zoom, same as vanilla tooltips.
             graphics.tooltip(this.font, tooltipComponents, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null);
         }
     }
@@ -276,7 +277,6 @@ public class AbilityLockScreen extends Screen {
 
         int textColor = unlocked ? 0xFFFFFFFF : (reachableThisRun ? 0xFFAAAAAA : 0xFF777777);
 
-        // Scaled to screen space now, matching boxH, so vertical centering stays correct at any zoom level.
         int lineHeight = (int) Math.round(this.font.lineHeight * scale);
         int textY = y + (boxH - lineHeight) / 2;
         drawScrollingText(graphics, Component.translatable(abilityData.displayName()), x, y, boxW, boxH, textY, textColor);
@@ -407,7 +407,23 @@ public class AbilityLockScreen extends Screen {
     }
 
     @Override
+    public boolean keyPressed(KeyEvent event) {
+        InputConstants.Key key = InputConstants.getKey(event);
+
+        if (KeyBinds.ABILITY_SCREEN_HOTKEY.isActiveAndMatches(key)) {
+            this.onClose();
+            return true;
+        }
+        if (KeyBinds.TASK_SCREEN_HOTKEY.isActiveAndMatches(key)) {
+            this.minecraft.setScreen(new TaskScreen());
+            return true;
+        }
+
+        return super.keyPressed(event);
+    }
+
+    @Override
     public boolean isPauseScreen() {
-        return false;
+        return true;
     }
 }

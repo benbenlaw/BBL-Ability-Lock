@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_interact_ability",
+  "display_name": "Using Eye of Enders",
+  "parents": [
+    "abilitylock:item_interact_ender_pearl"
+  ],
+  "targets": [
+    "minecraft:ender_eye"
+  ]
+}

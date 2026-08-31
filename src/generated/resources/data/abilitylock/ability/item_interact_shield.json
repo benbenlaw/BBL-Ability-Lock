@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:item_interact_ability",
+  "display_name": "Using Shields",
+  "parents": [
+    "abilitylock:crafting_iron_tools"
+  ],
+  "targets": [
+    "minecraft:shield"
+  ]
+}

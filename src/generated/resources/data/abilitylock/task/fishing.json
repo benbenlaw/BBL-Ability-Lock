@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:stat_task",
+  "display_name": "Catch a Fish",
+  "required_abilities": [
+    "abilitylock:item_interact_fishing_rod"
+  ],
+  "targets": [
+    "minecraft:fish_caught"
+  ]
+}

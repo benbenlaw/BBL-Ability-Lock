@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:entity_interact_ability",
+  "display_name": "Happy Ghast Riding",
+  "parents": [
+    "abilitylock:dimension_nether"
+  ],
+  "targets": [
+    "minecraft:happy_ghast"
+  ]
+}

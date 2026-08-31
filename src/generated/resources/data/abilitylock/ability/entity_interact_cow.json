@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:entity_interact_ability",
+  "display_name": "Milking",
+  "parents": [
+    "abilitylock:crafting_iron_tools"
+  ],
+  "targets": [
+    "minecraft:cow",
+    "minecraft:goat"
+  ]
+}

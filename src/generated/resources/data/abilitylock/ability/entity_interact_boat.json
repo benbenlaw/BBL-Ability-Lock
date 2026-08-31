@@ -1,0 +1,10 @@
+{
+  "type": "abilitylock:entity_interact_ability",
+  "display_name": "Sailing",
+  "parents": [
+    "abilitylock:crouch"
+  ],
+  "targets": [
+    "minecraft:boat"
+  ]
+}

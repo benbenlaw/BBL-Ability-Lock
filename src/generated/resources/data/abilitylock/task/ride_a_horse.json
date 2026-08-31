@@ -1,0 +1,11 @@
+{
+  "type": "abilitylock:stat_task",
+  "display_name": "Ride a Horse",
+  "required_abilities": [
+    "abilitylock:entity_interact_horse"
+  ],
+  "target": 20,
+  "targets": [
+    "minecraft:horse_one_cm"
+  ]
+}

@@ -15,6 +15,9 @@ import com.benbenlaw.abilitylock.presets.PresetLoader;
 import com.benbenlaw.abilitylock.screen.PendingAbilityLockWorldSettings;
 import com.benbenlaw.abilitylock.task.TaskLoader;
 import com.benbenlaw.abilitylock.task.TaskManager;
+import com.benbenlaw.abilitylock.util.KeyBinds;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,6 +32,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+
+import static com.benbenlaw.abilitylock.util.KeyBinds.ABILITY_SCREEN_KEY;
+import static com.benbenlaw.abilitylock.util.KeyBinds.TASK_SCREEN_KEY;
 
 @EventBusSubscriber(modid = AbilityLock.MOD_ID)
 public class ServerEvents {
@@ -119,6 +125,15 @@ public class ServerEvents {
             } else {
                 player.sendSystemMessage(Component.literal("AbilityLock: " + preset.displayName() + " - nothing unlocked yet."));
             }
+
+            player.sendSystemMessage(Component.literal("Press ")
+                    .append(KeyBinds.ABILITY_SCREEN_HOTKEY.getTranslatedKeyMessage())
+                    .append(Component.literal(" to view your abilities and tasks.")));
+
+            player.sendSystemMessage(Component.literal("Press ")
+                    .append(KeyBinds.TASK_SCREEN_HOTKEY.getTranslatedKeyMessage())
+                    .append(Component.literal(" to view the task grid.")));
+
             return updated;
         }
 
