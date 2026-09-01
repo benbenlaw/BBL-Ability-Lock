@@ -2,7 +2,7 @@
   "type": "abilitylock:item_interact_ability",
   "display_name": "Eating Food",
   "parents": [
-    "abilitylock:furnace"
+    "abilitylock:passive_mob_damage"
   ],
   "targets": [
     "#c:foods"

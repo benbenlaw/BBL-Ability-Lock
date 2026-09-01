@@ -210,13 +210,13 @@ public class AbilityProvider implements DataProvider {
             save(futures, cachedOutput,"passive_aquatic_mob_damage",
                     AbilityBuilder.ability("Passive Aquatic Mob Damage")
                             .type(AbilityTypes.ENTITY_HURT)
-                            .parent("passive_mob_damage")
+                            .parent("item_interact_food")
                             .targets("minecraft:cod", "minecraft:salmon", "minecraft:tropical_fish", "minecraft:pufferfish", "minecraft:dolphin", "minecraft:turtle", "minecraft:squid", "minecraft:glow_squid"));
 
             save(futures, cachedOutput, "hostile_overworld_mob_damage",
                     AbilityBuilder.ability("Hostile Overworld Mob Damage")
                             .type(AbilityTypes.ENTITY_HURT)
-                            .parent("passive_mob_damage")
+                            .parent("item_interact_food")
                             .targetTag(Identifier.parse("minecraft:zombies"))
                             .targetTag(Identifier.parse("minecraft:skeletons"))
                             .targets("minecraft:creeper", "minecraft:enderman", "minecraft:spider", "minecraft:witch"));
@@ -335,7 +335,7 @@ public class AbilityProvider implements DataProvider {
             //Entity Interactions
             save(futures, cachedOutput, "entity_interact_villager",
                     AbilityBuilder.ability("Trading")
-                            .parent("passive_mob_damage")
+                            .parent("item_interact_food")
                             .type(AbilityTypes.ENTITY_INTERACT)
                             .targets("minecraft:villager"));
 
@@ -390,13 +390,13 @@ public class AbilityProvider implements DataProvider {
             //Item Locks
             save(futures, cachedOutput, "item_interact_bow",
                     AbilityBuilder.ability("Using Bows")
-                            .parent("passive_mob_damage")
+                            .parent("item_interact_food")
                             .type(AbilityTypes.ITEM_INTERACT)
                             .targets("minecraft:bow"));
 
             save(futures, cachedOutput, "item_interact_food",
                     AbilityBuilder.ability("Eating Food")
-                            .parent("furnace")
+                            .parent("passive_mob_damage")
                             .type(AbilityTypes.ITEM_INTERACT)
                             .targetTag(Tags.Items.FOODS.location()));
 

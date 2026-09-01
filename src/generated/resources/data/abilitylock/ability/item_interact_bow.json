@@ -2,7 +2,7 @@
   "type": "abilitylock:item_interact_ability",
   "display_name": "Using Bows",
   "parents": [
-    "abilitylock:passive_mob_damage"
+    "abilitylock:item_interact_food"
   ],
   "targets": [
     "minecraft:bow"

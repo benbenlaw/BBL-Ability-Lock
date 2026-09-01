@@ -28,24 +28,30 @@ public class ClientEvents {
     public static void onClientPress(InputEvent.Key event) {
         if (event.getAction() != InputConstants.PRESS) return;
 
-        Screen currentScreen = Minecraft.getInstance().screen;
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null) return; // not actually in a world (main menu, loading, etc.)
+
+        Screen currentScreen = mc.screen;
+        boolean ownScreenOpen = currentScreen instanceof TaskScreen || currentScreen instanceof AbilityLockScreen;
+
+        if (currentScreen != null && !ownScreenOpen) return; // chat, inventory, other GUIs — leave the key alone
 
         boolean taskKey = event.getKey() == KeyBinds.TASK_SCREEN_HOTKEY.getKey().getValue();
         boolean abilityKey = event.getKey() == KeyBinds.ABILITY_SCREEN_HOTKEY.getKey().getValue();
 
         if (taskKey) {
             if (currentScreen instanceof TaskScreen) {
-                Minecraft.getInstance().setScreen(null);
+                mc.setScreen(null);
             } else {
-                Minecraft.getInstance().setScreen(new TaskScreen());
+                mc.setScreen(new TaskScreen());
             }
         }
 
         if (abilityKey) {
             if (currentScreen instanceof AbilityLockScreen) {
-                Minecraft.getInstance().setScreen(null);
+                mc.setScreen(null);
             } else {
-                Minecraft.getInstance().setScreen(new AbilityLockScreen());
+                mc.setScreen(new AbilityLockScreen());
             }
         }
     }

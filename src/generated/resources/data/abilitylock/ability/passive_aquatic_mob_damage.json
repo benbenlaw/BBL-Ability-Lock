@@ -2,7 +2,7 @@
   "type": "abilitylock:entity_hurt_ability",
   "display_name": "Passive Aquatic Mob Damage",
   "parents": [
-    "abilitylock:passive_mob_damage"
+    "abilitylock:item_interact_food"
   ],
   "targets": [
     "minecraft:cod",
