@@ -9,7 +9,7 @@ import net.minecraft.resources.Identifier;
 
 import java.util.*;
 
-public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identifier> presetId, boolean eliminated, Optional<Identifier> lastGranted) {
+public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identifier> presetId, boolean eliminated, Optional<Identifier> lastGranted, int bonusPoints) {
 
     public static final Codec<AbilityLockData> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Identifier.CODEC.listOf()
@@ -18,7 +18,8 @@ public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identi
                     .forGetter(AbilityLockData::unlockedAbilities),
             Identifier.CODEC.optionalFieldOf("preset").forGetter(AbilityLockData::presetId),
             Codec.BOOL.optionalFieldOf("eliminated", false).forGetter(AbilityLockData::eliminated),
-            Identifier.CODEC.optionalFieldOf("last_granted").forGetter(AbilityLockData::lastGranted)
+            Identifier.CODEC.optionalFieldOf("last_granted").forGetter(AbilityLockData::lastGranted),
+            Codec.INT.optionalFieldOf("bonus_points", 0).forGetter(AbilityLockData::bonusPoints)
     ).apply(instance, AbilityLockData::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AbilityLockData> STREAM_CODEC = StreamCodec.composite(
@@ -30,6 +31,8 @@ public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identi
             AbilityLockData::eliminated,
             Identifier.STREAM_CODEC.apply(ByteBufCodecs::optional),
             AbilityLockData::lastGranted,
+            ByteBufCodecs.INT,
+            AbilityLockData::bonusPoints,
             AbilityLockData::fromParts
     );
 
@@ -37,16 +40,16 @@ public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identi
         return new ArrayList<>(data.unlockedAbilities());
     }
 
-    private static AbilityLockData fromParts(List<Identifier> list, Optional<Identifier> presetId, boolean eliminated, Optional<Identifier> lastGranted) {
-        return new AbilityLockData(new HashSet<>(list), presetId, eliminated, lastGranted);
+    private static AbilityLockData fromParts(List<Identifier> list, Optional<Identifier> presetId, boolean eliminated, Optional<Identifier> lastGranted, int bonusPoints) {
+        return new AbilityLockData(new HashSet<>(list), presetId, eliminated, lastGranted, bonusPoints);
     }
 
     public AbilityLockData(Set<Identifier> unlockedAbilities) {
-        this(unlockedAbilities, Optional.empty(), false, Optional.empty());
+        this(unlockedAbilities, Optional.empty(), false, Optional.empty(), 0);
     }
 
     public AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identifier> presetId) {
-        this(unlockedAbilities, presetId, false, Optional.empty());
+        this(unlockedAbilities, presetId, false, Optional.empty(), 0);
     }
 
     public boolean has(Identifier ability) {
@@ -57,14 +60,18 @@ public record AbilityLockData(Set<Identifier> unlockedAbilities, Optional<Identi
         if (unlockedAbilities.contains(ability)) return this;
         Set<Identifier> copy = new HashSet<>(unlockedAbilities);
         copy.add(ability);
-        return new AbilityLockData(copy, presetId, eliminated, Optional.of(ability));
+        return new AbilityLockData(copy, presetId, eliminated, Optional.of(ability), bonusPoints);
     }
 
     public AbilityLockData withPreset(Identifier presetId) {
-        return new AbilityLockData(unlockedAbilities, Optional.of(presetId), eliminated, lastGranted);
+        return new AbilityLockData(unlockedAbilities, Optional.of(presetId), eliminated, lastGranted, bonusPoints);
     }
 
     public AbilityLockData withEliminated(boolean eliminated) {
-        return new AbilityLockData(unlockedAbilities, presetId, eliminated, lastGranted);
+        return new AbilityLockData(unlockedAbilities, presetId, eliminated, lastGranted, bonusPoints);
+    }
+
+    public AbilityLockData withBonusPoints(int bonusPoints) {
+        return new AbilityLockData(unlockedAbilities, presetId, eliminated, lastGranted, bonusPoints);
     }
 }

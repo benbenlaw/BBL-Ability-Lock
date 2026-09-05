@@ -12,6 +12,7 @@ import com.benbenlaw.abilitylock.task.TaskLoader;
 import com.benbenlaw.abilitylock.task.TaskManager;
 import com.benbenlaw.abilitylock.task.TaskType;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -147,6 +148,18 @@ public class AbilityLockCommand {
                                         )
                                 )
                         )
+                        .then(Commands.literal("simulate")
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                .then(Commands.argument("amount", IntegerArgumentType.integer(1, 500))
+                                        .executes(AbilityLockCommand::simulateSelf)
+                                        .then(Commands.literal("preset")
+                                                .then(Commands.argument("preset", StringArgumentType.greedyString())
+                                                        .suggests(PRESET_SUGGESTIONS)
+                                                        .executes(AbilityLockCommand::simulatePreset)
+                                                )
+                                        )
+                                )
+                        )
         );
     }
 
@@ -232,6 +245,96 @@ public class AbilityLockCommand {
                 });
 
         return 1;
+    }
+
+    private static int simulateSelf(CommandContext<CommandSourceStack> ctx) {
+        ServerPlayer player = getSelfOrFail(ctx);
+        if (player == null) return 0;
+
+        AbilityLockData data = player.getData(AbilityLockAttachments.ABILITY_LOCK);
+        if (data.presetId().isEmpty()) {
+            ctx.getSource().sendFailure(Component.literal(player.getName().getString() + " has no preset assigned - use '/abilitylock simulate <amount> preset <id>' instead."));
+            return 0;
+        }
+
+        PresetData preset = PresetLoader.DATA.get(data.presetId().get());
+        if (preset == null) {
+            ctx.getSource().sendFailure(Component.literal("Assigned preset '" + data.presetId().get() + "' no longer exists."));
+            return 0;
+        }
+
+        return runSimulation(ctx, data.presetId().get(), preset);
+    }
+
+    private static int simulatePreset(CommandContext<CommandSourceStack> ctx) {
+        String raw = StringArgumentType.getString(ctx, "preset");
+        Identifier presetId;
+        try {
+            presetId = Identifier.parse(raw);
+        } catch (Exception e) {
+            ctx.getSource().sendFailure(Component.literal("Invalid preset id: " + raw));
+            return 0;
+        }
+
+        PresetData preset = PresetLoader.DATA.get(presetId);
+        if (preset == null) {
+            ctx.getSource().sendFailure(Component.literal("Unknown preset: " + presetId));
+            return 0;
+        }
+
+        return runSimulation(ctx, presetId, preset);
+    }
+
+    private static int runSimulation(CommandContext<CommandSourceStack> ctx, Identifier presetId, PresetData preset) {
+        int amount = IntegerArgumentType.getInteger(ctx, "amount");
+        int gridSize = preset.defaultGridSize().orElse(5);
+
+        Set<Identifier> startingAbilities = new HashSet<>(preset.startingAbilities());
+        Set<Identifier> allowedTasks = preset.restrictsTasks() ? new HashSet<>(preset.validTasks()) : null;
+        int immediatePercent = TaskManager.resolveImmediateTaskPercentage(preset);
+
+        TaskManager.SimulationResult result = TaskManager.simulateUnlockOrders(amount, gridSize, gridSize, startingAbilities, immediatePercent, allowedTasks);
+        List<List<Identifier>> sequences = result.unlockSequences();
+
+        if (sequences.isEmpty() || sequences.get(0).isEmpty()) {
+            ctx.getSource().sendFailure(Component.literal("Simulation produced no ability grants - check the preset's grid actually contains completable tasks."));
+            return 0;
+        }
+
+        Map<Identifier, List<Integer>> positionsByAbility = new HashMap<>();
+        for (List<Identifier> seq : sequences) {
+            for (int i = 0; i < seq.size(); i++) {
+                positionsByAbility.computeIfAbsent(seq.get(i), k -> new ArrayList<>()).add(i + 1);
+            }
+        }
+
+        ctx.getSource().sendSuccess(() -> Component.literal(
+                "Simulated " + amount + " completion order(s) for '" + presetId + "' (" + gridSize + "x" + gridSize + ", " + result.gridTaskIds().size() + " tasks):"), false);
+        ctx.getSource().sendSuccess(() -> Component.literal("Position range each ability was unlocked at (sorted by average position):"), false);
+
+        List<Map.Entry<Identifier, List<Integer>>> entries = new ArrayList<>(positionsByAbility.entrySet());
+        entries.sort(Comparator.comparingDouble(e -> average(e.getValue())));
+
+        for (Map.Entry<Identifier, List<Integer>> entry : entries) {
+            List<Integer> positions = entry.getValue();
+            int min = Collections.min(positions);
+            int max = Collections.max(positions);
+            double avg = average(positions);
+            int seenCount = positions.size();
+            String name = displayNameOf(entry.getKey());
+            String rangeText = (min == max) ? ("pos " + min) : ("pos " + min + "-" + max);
+
+            ctx.getSource().sendSuccess(() -> Component.literal(String.format(
+                    " - %s: %s (avg %.1f, seen %d/%d)", name, rangeText, avg, seenCount, amount)), false);
+        }
+
+        return 1;
+    }
+
+    private static double average(List<Integer> values) {
+        double sum = 0;
+        for (int v : values) sum += v;
+        return sum / values.size();
     }
 
     private static int validatePreset(CommandContext<CommandSourceStack> ctx) {
@@ -454,7 +557,7 @@ public class AbilityLockCommand {
         Set<Identifier> removed = new HashSet<>();
         removeCascade(abilityId, updated, removed);
 
-        AbilityLockData newData = new AbilityLockData(updated, data.presetId(), data.eliminated(), data.lastGranted());
+        AbilityLockData newData = new AbilityLockData(updated, data.presetId(), data.eliminated(), data.lastGranted(), data.bonusPoints());
         player.setData(AbilityLockAttachments.ABILITY_LOCK, newData);
 
         PacketDistributor.sendToPlayer(player, new SyncAbilityLockPacket(newData));

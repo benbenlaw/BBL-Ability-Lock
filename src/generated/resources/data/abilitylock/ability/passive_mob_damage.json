@@ -2,7 +2,7 @@
   "type": "abilitylock:entity_hurt_ability",
   "display_name": "Passive Mob Damage",
   "parents": [
-    "abilitylock:crafting_stone_tools"
+    "abilitylock:item_interact_food"
   ],
   "targets": [
     "minecraft:cow",

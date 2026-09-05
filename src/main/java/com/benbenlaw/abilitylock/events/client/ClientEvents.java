@@ -29,12 +29,12 @@ public class ClientEvents {
         if (event.getAction() != InputConstants.PRESS) return;
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null) return; // not actually in a world (main menu, loading, etc.)
+        if (mc.player == null) return;
 
         Screen currentScreen = mc.screen;
         boolean ownScreenOpen = currentScreen instanceof TaskScreen || currentScreen instanceof AbilityLockScreen;
 
-        if (currentScreen != null && !ownScreenOpen) return; // chat, inventory, other GUIs — leave the key alone
+        if (currentScreen != null && !ownScreenOpen) return;
 
         boolean taskKey = event.getKey() == KeyBinds.TASK_SCREEN_HOTKEY.getKey().getValue();
         boolean abilityKey = event.getKey() == KeyBinds.ABILITY_SCREEN_HOTKEY.getKey().getValue();
@@ -93,10 +93,9 @@ public class ClientEvents {
 
         AbilityUnlockToastManager.Entry entry = AbilityUnlockToastManager.current();
         if (entry != null) {
-            String label = (entry.bonus() ? "Bonus Unlock: " : "Ability Unlocked: ") + entry.displayName();
-            int labelX = (width / 2) - (mc.font.width(label) / 2);
+            int labelX = (width / 2) - (mc.font.width(entry.label()) / 2);
             int color = entry.bonus() ? 0xFFFFD700 : 0xFF55FF55;
-            guiGraphics.text(mc.font, label, labelX, 30, color);
+            guiGraphics.text(mc.font, entry.label(), labelX, 30, color);
         }
     }
 

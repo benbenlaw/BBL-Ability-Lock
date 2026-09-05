@@ -8,10 +8,13 @@ import com.benbenlaw.abilitylock.attachment.AbilityLockData;
 import com.benbenlaw.abilitylock.attachment.TaskProgressData;
 import com.benbenlaw.abilitylock.config.ServerConfig;
 import com.benbenlaw.abilitylock.network.packet.AbilityUnlockToastPacket;
+import com.benbenlaw.abilitylock.network.packet.BonusPointEarnedPacket;
+import com.benbenlaw.abilitylock.network.packet.SyncAbilityLockPacket;
 import com.benbenlaw.abilitylock.network.packet.SyncTaskProgressPacket;
 import com.benbenlaw.abilitylock.presets.PresetData;
 import com.benbenlaw.abilitylock.presets.PresetLoader;
 import com.benbenlaw.abilitylock.util.SpeedrunManager;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -20,6 +23,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.IntUnaryOperator;
 
 public class TaskManager {
 
@@ -169,13 +173,57 @@ public class TaskManager {
         PacketDistributor.sendToPlayer(player, new SyncTaskProgressPacket(updated));
     }
 
-    private static int resolveImmediateTaskPercentage(@Nullable PresetData preset) {
+    public static int resolveImmediateTaskPercentage(@Nullable PresetData preset) {
         if (preset != null && preset.immediateTaskPercentage().isPresent()) {
             return preset.immediateTaskPercentage().get();
         }
 
         return ServerConfig.immediateTaskPercentage.get();
     }
+
+    public static SimulationResult simulateUnlockOrders(int attempts, int gridWidth, int gridHeight, Set<Identifier> startingAbilities, int immediatePercent, @Nullable Set<Identifier> allowedTasks) {
+        RandomSource random = RandomSource.create();
+
+        List<Identifier> gridTaskIds = buildSolvableGrid(gridWidth * gridHeight, startingAbilities, random, immediatePercent, allowedTasks);
+
+        List<TaskType> gridTasks = new ArrayList<>();
+        for (Identifier taskId : gridTaskIds) {
+            TaskType task = TaskLoader.TASKS.get(taskId);
+            if (task != null) gridTasks.add(task);
+        }
+
+        List<List<Identifier>> sequences = new ArrayList<>();
+        for (int i = 0; i < attempts; i++) {
+            sequences.add(simulateOneUnlockOrder(gridTasks, startingAbilities, random));
+        }
+
+        return new SimulationResult(gridTaskIds, sequences);
+    }
+
+    private static List<Identifier> simulateOneUnlockOrder(List<TaskType> gridTasks, Set<Identifier> startingAbilities, RandomSource random) {
+        Random rng = new Random(random.nextLong());
+        Set<Identifier> unlocked = new HashSet<>(startingAbilities);
+        List<TaskType> remaining = new ArrayList<>(gridTasks);
+        List<Identifier> grantSequence = new ArrayList<>();
+
+        while (!remaining.isEmpty()) {
+            List<TaskType> attemptable = new ArrayList<>();
+            for (TaskType task : remaining) {
+                if (unlocked.containsAll(realAbilityCost(task))) attemptable.add(task);
+            }
+            if (attemptable.isEmpty()) break;
+
+            TaskType chosen = attemptable.get(rng.nextInt(attemptable.size()));
+            remaining.remove(chosen);
+
+            Identifier granted = simulateGrant(unlocked, remaining, rng);
+            if (granted != null) grantSequence.add(granted);
+        }
+
+        return grantSequence;
+    }
+
+    public record SimulationResult(List<Identifier> gridTaskIds, List<List<Identifier>> unlockSequences) {}
 
     private static final int SELECTION_ATTEMPTS = 12;
 
@@ -184,7 +232,8 @@ public class TaskManager {
 
         for (int attempt = 0; attempt < SELECTION_ATTEMPTS; attempt++) {
             Set<TaskType> selectedTasks = selectCandidateTasks(targetCount, startingAbilities, random, immediatePercent, allowedTasks);
-            List<Identifier> result = simulateAndTrim(selectedTasks, startingAbilities);
+            Random simRng = new Random(random.nextLong());
+            List<Identifier> result = simulateAndTrim(selectedTasks, startingAbilities, simRng);
 
             if (result.size() > best.size()) {
                 best = result;
@@ -237,7 +286,7 @@ public class TaskManager {
         return selectedTasks;
     }
 
-    private static List<Identifier> simulateAndTrim(Set<TaskType> candidateTasks, Set<Identifier> startingAbilities) {
+    private static List<Identifier> simulateAndTrim(Set<TaskType> candidateTasks, Set<Identifier> startingAbilities, Random rng) {
         Set<Identifier> unlocked = new HashSet<>(startingAbilities);
         List<TaskType> remaining = new ArrayList<>(candidateTasks);
         List<Identifier> completed = new ArrayList<>();
@@ -255,14 +304,14 @@ public class TaskManager {
                 completed.add(task.getId());
                 progressed = true;
 
-                simulateGrant(unlocked, remaining);
+                simulateGrant(unlocked, remaining, rng);
             }
         }
 
         return completed;
     }
 
-    private static void simulateGrant(Set<Identifier> unlocked, List<TaskType> remainingTasks) {
+    private static @Nullable Identifier simulateGrant(Set<Identifier> unlocked, List<TaskType> remainingTasks, Random rng) {
         List<Identifier> eligible = new ArrayList<>();
         for (Identifier abilityId : AbilityLoader.DATA.keySet()) {
             if (unlocked.contains(abilityId)) continue;
@@ -270,7 +319,7 @@ public class TaskManager {
             if (abilityData == null || !unlocked.containsAll(abilityData.parents())) continue;
             eligible.add(abilityId);
         }
-        if (eligible.isEmpty()) return;
+        if (eligible.isEmpty()) return null;
 
         Set<Identifier> relevant = relevantAbilitiesFor(remainingTasks);
         Map<Identifier, Integer> directFrequency = directNeedFrequency(remainingTasks);
@@ -287,24 +336,53 @@ public class TaskManager {
         }
         List<Identifier> finalPool = directPool.isEmpty() ? pool : directPool;
 
-        unlocked.add(pickHighestDemand(finalPool, directFrequency));
+        Identifier chosen = pickHighestDemand(finalPool, directFrequency, rng::nextInt);
+        unlocked.add(chosen);
+        return chosen;
     }
 
     private static void onTaskCompleted(ServerPlayer player, TaskType task, TaskProgressData progressData) {
         grantGridAwareAbility(player, progressData).ifPresent(id -> announceUnlock(player, id, false));
-        maybeGrantBonusAbility(player, progressData);
+        maybeAwardBonusPoint(player);
     }
 
-    private static void maybeGrantBonusAbility(ServerPlayer player, TaskProgressData progressData) {
+    private static void maybeAwardBonusPoint(ServerPlayer player) {
         AbilityLockData abilityData = player.getData(AbilityLockAttachments.ABILITY_LOCK);
 
         int bonusPercent = resolveBonusAbilityPercentage(abilityData);
         if (bonusPercent <= 0) return;
         if (player.getRandom().nextInt(100) >= bonusPercent) return;
 
-        List<Identifier> eligible = AbilityChecker.getEligibleAbilities(abilityData);
-        if (eligible.isEmpty()) return;
+        AbilityLockData updated = abilityData.withBonusPoints(abilityData.bonusPoints() + 1);
+        player.setData(AbilityLockAttachments.ABILITY_LOCK, updated);
+        PacketDistributor.sendToPlayer(player, new SyncAbilityLockPacket(updated));
 
+        PacketDistributor.sendToPlayer(player, new BonusPointEarnedPacket(updated.bonusPoints()));
+    }
+
+    public static void spendBonusPoint(ServerPlayer player, Identifier abilityId) {
+        AbilityLockData data = player.getData(AbilityLockAttachments.ABILITY_LOCK);
+
+        if (data.bonusPoints() <= 0) {
+            player.sendSystemMessage(Component.literal("You don't have a bonus point to spend."));
+            return;
+        }
+        if (data.has(abilityId)) {
+            player.sendSystemMessage(Component.literal("You already have that ability unlocked."));
+            return;
+        }
+
+        AbilityData abilityData = AbilityLoader.DATA.get(abilityId);
+        if (abilityData == null) {
+            player.sendSystemMessage(Component.literal("Unknown ability."));
+            return;
+        }
+        if (!data.unlockedAbilities().containsAll(abilityData.parents())) {
+            player.sendSystemMessage(Component.literal("That ability isn't eligible yet - its prerequisites aren't unlocked."));
+            return;
+        }
+
+        TaskProgressData progressData = player.getData(AbilityLockAttachments.TASK_PROGRESS);
         List<TaskType> remainingTasks = new ArrayList<>();
         for (Identifier taskId : progressData.gridTaskIds()) {
             if (progressData.isComplete(taskId)) continue;
@@ -312,16 +390,16 @@ public class TaskManager {
             if (task != null) remainingTasks.add(task);
         }
         Set<Identifier> relevant = relevantAbilitiesFor(remainingTasks);
-
-        List<Identifier> nonProgression = new ArrayList<>();
-        for (Identifier id : eligible) {
-            if (!relevant.contains(id)) nonProgression.add(id);
+        if (relevant.contains(abilityId)) {
+            player.sendSystemMessage(Component.literal("That ability is part of your normal progression - it can't be bought with a bonus point."));
+            return;
         }
-        List<Identifier> pool = nonProgression.isEmpty() ? eligible : nonProgression;
 
-        Identifier chosen = pool.get(player.getRandom().nextInt(pool.size()));
-        AbilityChecker.grantSpecific(player, chosen);
-        announceUnlock(player, chosen, true);
+        AbilityLockData afterSpend = data.withBonusPoints(data.bonusPoints() - 1);
+        player.setData(AbilityLockAttachments.ABILITY_LOCK, afterSpend);
+
+        AbilityChecker.grantSpecific(player, abilityId);
+        announceUnlock(player, abilityId, true);
     }
 
     private static int resolveBonusAbilityPercentage(AbilityLockData data) {
@@ -361,12 +439,13 @@ public class TaskManager {
         }
         List<Identifier> finalPool = directPool.isEmpty() ? pool : directPool;
 
-        Identifier chosen = pickHighestDemand(finalPool, directFrequency);
+        Identifier chosen = pickHighestDemand(finalPool, directFrequency, player.getRandom()::nextInt);
 
         AbilityChecker.grantSpecific(player, chosen);
         return Optional.of(chosen);
     }
 
+    /** How many distinct remaining tasks directly need each ability (own requiredAbilities + parent-task chain) - the ranking basis for pickHighestDemand. */
     private static Map<Identifier, Integer> directNeedFrequency(Collection<TaskType> tasks) {
         Map<Identifier, Integer> frequency = new HashMap<>();
         for (TaskType task : tasks) {
@@ -391,19 +470,19 @@ public class TaskManager {
         }
     }
 
-    private static Identifier pickHighestDemand(List<Identifier> candidates, Map<Identifier, Integer> frequency) {
-        Identifier best = null;
+    private static Identifier pickHighestDemand(List<Identifier> candidates, Map<Identifier, Integer> frequency, IntUnaryOperator boundedRandom) {
         int bestFrequency = -1;
-
         for (Identifier id : candidates) {
-            int f = frequency.getOrDefault(id, 0);
-            if (f > bestFrequency || (f == bestFrequency && (best == null || id.toString().compareTo(best.toString()) < 0))) {
-                best = id;
-                bestFrequency = f;
-            }
+            bestFrequency = Math.max(bestFrequency, frequency.getOrDefault(id, 0));
         }
 
-        return best;
+        List<Identifier> tied = new ArrayList<>();
+        for (Identifier id : candidates) {
+            if (frequency.getOrDefault(id, 0) == bestFrequency) tied.add(id);
+        }
+
+        if (tied.size() == 1) return tied.get(0);
+        return tied.get(boundedRandom.applyAsInt(tied.size()));
     }
 
     private static Set<Identifier> relevantAbilitiesFor(Collection<TaskType> tasks) {

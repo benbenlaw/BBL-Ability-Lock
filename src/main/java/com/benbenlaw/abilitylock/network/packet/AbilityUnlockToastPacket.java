@@ -14,11 +14,11 @@ public record AbilityUnlockToastPacket(Identifier abilityId, boolean bonus) impl
     public static final Type<AbilityUnlockToastPacket> TYPE = new Type<>(AbilityLock.identifier("ability_unlock_toast"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, AbilityUnlockToastPacket> STREAM_CODEC =
-        StreamCodec.composite(
-            Identifier.STREAM_CODEC, AbilityUnlockToastPacket::abilityId,
-            ByteBufCodecs.BOOL, AbilityUnlockToastPacket::bonus,
-            AbilityUnlockToastPacket::new
-        );
+            StreamCodec.composite(
+                    Identifier.STREAM_CODEC, AbilityUnlockToastPacket::abilityId,
+                    ByteBufCodecs.BOOL, AbilityUnlockToastPacket::bonus,
+                    AbilityUnlockToastPacket::new
+            );
 
     public static final IPayloadHandler<AbilityUnlockToastPacket> HANDLER = (packet, context) -> {
         context.enqueueWork(() -> AbilityUnlockToastManager.show(packet.abilityId(), packet.bonus()));

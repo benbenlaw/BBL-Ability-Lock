@@ -4,6 +4,7 @@ import com.benbenlaw.abilitylock.ability.AbilityData;
 import com.benbenlaw.abilitylock.ability.AbilityLoader;
 import com.benbenlaw.abilitylock.attachment.AbilityLockAttachments;
 import com.benbenlaw.abilitylock.attachment.AbilityLockData;
+import com.benbenlaw.abilitylock.network.packet.SpendBonusPointPacket;
 import com.benbenlaw.abilitylock.task.TaskManager;
 import com.benbenlaw.abilitylock.util.KeyBinds;
 import com.mojang.blaze3d.platform.InputConstants;
@@ -15,7 +16,10 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import java.util.*;
 
@@ -179,6 +183,8 @@ public class AbilityLockScreen extends Screen {
         AbilityLockData data = this.minecraft.player.getData(AbilityLockAttachments.ABILITY_LOCK);
         Set<Identifier> runRelevant = TaskManager.getRunRelevantAbilities(this.minecraft.player);
 
+        graphics.centeredText(this.font, Component.literal("Bonus Points: " + data.bonusPoints()), this.width / 2, 24, 0xFFFFD700);
+
         int totalSlots = Math.max(leafCounter, 1);
         int totalWidth = totalSlots * (BOX_WIDTH + COL_GAP) - COL_GAP;
         int startX = (this.width - totalWidth) / 2;
@@ -195,28 +201,26 @@ public class AbilityLockScreen extends Screen {
             drawNode(graphics, id, data, runRelevant, startX, mouseX, mouseY);
         }
 
-        Identifier hoveredId = null;
-        int boxW = (int) Math.round(BOX_WIDTH * scale);
-        int boxH = (int) Math.round(BOX_HEIGHT * scale);
-        for (Identifier id : abilityIds) {
-            int[] pos = boxTopLeft(id, startX);
-            if (mouseX >= pos[0] && mouseX <= pos[0] + boxW && mouseY >= pos[1] && mouseY <= pos[1] + boxH) {
-                hoveredId = id;
-            }
-        }
+        Identifier hoveredId = abilityAt(mouseX, mouseY);
 
         if (hoveredId != null) {
             AbilityData hoveredData = AbilityLoader.DATA.get(hoveredId);
             boolean unlocked = data.has(hoveredId);
             boolean reachableThisRun = unlocked || runRelevant.contains(hoveredId);
+            boolean eligible = allParentsGranted(hoveredData.parents(), data);
+            boolean bonusCandidate = !unlocked && !reachableThisRun && eligible;
 
             List<Component> tooltip = new ArrayList<>();
             tooltip.add(Component.translatable(hoveredData.displayName()));
             if (unlocked) {
                 tooltip.add(Component.literal("Unlocked"));
+            } else if (bonusCandidate) {
+                tooltip.add(Component.literal(data.bonusPoints() > 0
+                        ? "Possible Bonus Unlock - click to spend 1 point"
+                        : "Possible Bonus Unlock - no points available"));
             } else if (!reachableThisRun) {
                 tooltip.add(Component.literal("Not part of this run"));
-            } else if (allParentsGranted(hoveredData.parents(), data)) {
+            } else if (eligible) {
                 tooltip.add(Component.literal("Next Up"));
             } else {
                 tooltip.add(Component.literal("Locked"));
@@ -229,6 +233,22 @@ public class AbilityLockScreen extends Screen {
 
             graphics.tooltip(this.font, tooltipComponents, mouseX, mouseY, DefaultTooltipPositioner.INSTANCE, null);
         }
+    }
+
+    private @Nullable Identifier abilityAt(int mouseX, int mouseY) {
+        int totalSlots = Math.max(leafCounter, 1);
+        int totalWidth = totalSlots * (BOX_WIDTH + COL_GAP) - COL_GAP;
+        int startX = (this.width - totalWidth) / 2;
+        int boxW = (int) Math.round(BOX_WIDTH * scale);
+        int boxH = (int) Math.round(BOX_HEIGHT * scale);
+
+        for (Identifier id : abilityIds) {
+            int[] pos = boxTopLeft(id, startX);
+            if (mouseX >= pos[0] && mouseX <= pos[0] + boxW && mouseY >= pos[1] && mouseY <= pos[1] + boxH) {
+                return id;
+            }
+        }
+        return null;
     }
 
     private int[] boxTopLeft(Identifier id, int startX) {
@@ -250,7 +270,9 @@ public class AbilityLockScreen extends Screen {
 
         boolean unlocked = data.has(id);
         boolean reachableThisRun = unlocked || runRelevant.contains(id);
-        boolean nextPotential = !unlocked && reachableThisRun && allParentsGranted(abilityData.parents(), data);
+        boolean eligible = allParentsGranted(abilityData.parents(), data);
+        boolean nextPotential = !unlocked && reachableThisRun && eligible;
+        boolean bonusCandidate = !unlocked && !reachableThisRun && eligible;
         boolean hovered = mouseX >= x && mouseX <= x + boxW && mouseY >= y && mouseY <= y + boxH;
 
         int fill;
@@ -258,6 +280,9 @@ public class AbilityLockScreen extends Screen {
         if (unlocked) {
             fill = 0xAA1D9E75;
             border = hovered ? 0xFFFFFFFF : 0xFF0F6E56;
+        } else if (bonusCandidate) {
+            fill = 0xAACC7A1E;
+            border = hovered ? 0xFFFFFFFF : 0xFF8F5313;
         } else if (!reachableThisRun) {
             fill = 0xCC101010;
             border = hovered ? 0xFFAAAAAA : 0xFF000000;
@@ -275,7 +300,7 @@ public class AbilityLockScreen extends Screen {
         graphics.fill(x, y, x + 1, y + boxH, border);
         graphics.fill(x + boxW - 1, y, x + boxW, y + boxH, border);
 
-        int textColor = unlocked ? 0xFFFFFFFF : (reachableThisRun ? 0xFFAAAAAA : 0xFF777777);
+        int textColor = unlocked ? 0xFFFFFFFF : ((reachableThisRun || bonusCandidate) ? 0xFFAAAAAA : 0xFF777777);
 
         int lineHeight = (int) Math.round(this.font.lineHeight * scale);
         int textY = y + (boxH - lineHeight) / 2;
@@ -356,6 +381,26 @@ public class AbilityLockScreen extends Screen {
         if (super.mouseClicked(event, doubleClick)) {
             return true;
         }
+
+        if (event.button() == 0 && this.minecraft.player != null) {
+            Identifier clickedId = abilityAt((int) event.x(), (int) event.y());
+            if (clickedId != null) {
+                AbilityLockData data = this.minecraft.player.getData(AbilityLockAttachments.ABILITY_LOCK);
+                Set<Identifier> runRelevant = TaskManager.getRunRelevantAbilities(this.minecraft.player);
+                AbilityData abilityData = AbilityLoader.DATA.get(clickedId);
+
+                boolean unlocked = data.has(clickedId);
+                boolean reachableThisRun = unlocked || runRelevant.contains(clickedId);
+                boolean eligible = allParentsGranted(abilityData.parents(), data);
+                boolean bonusCandidate = !unlocked && !reachableThisRun && eligible;
+
+                if (bonusCandidate && data.bonusPoints() > 0) {
+                    ClientPacketDistributor.sendToServer(new SpendBonusPointPacket(clickedId));
+                    return true;
+                }
+            }
+        }
+
         if (event.button() == 0) {
             dragging = true;
             dragStartX = event.x();

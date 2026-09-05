@@ -2,7 +2,7 @@
   "type": "abilitylock:entity_hurt_ability",
   "display_name": "Hostile Overworld Mob Damage",
   "parents": [
-    "abilitylock:item_interact_food"
+    "abilitylock:crafting_wooden_tools"
   ],
   "targets": [
     "#minecraft:zombies",

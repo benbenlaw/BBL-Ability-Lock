@@ -13,7 +13,7 @@ import java.util.Deque;
 
 public class AbilityUnlockToastManager {
 
-    public record Entry(String displayName, boolean bonus, long shownAtMillis) {}
+    public record Entry(String label, boolean bonus, long shownAtMillis) {}
 
     private static final long DISPLAY_MS = 4000;
     private static final Deque<Entry> QUEUE = new ArrayDeque<>();
@@ -22,7 +22,16 @@ public class AbilityUnlockToastManager {
     public static void show(Identifier abilityId, boolean bonus) {
         AbilityData data = AbilityLoader.DATA.get(abilityId);
         String name = data != null ? data.displayName() : abilityId.toString();
-        QUEUE.add(new Entry(name, bonus, 0));
+        String label = (bonus ? "Bonus Unlock: " : "Ability Unlocked: ") + name;
+        queue(label, bonus);
+    }
+
+    public static void showBonusPoint(int totalPoints) {
+        queue("Bonus Point Unlocked! (" + totalPoints + " available)", true);
+    }
+
+    private static void queue(String label, boolean bonus) {
+        QUEUE.add(new Entry(label, bonus, 0));
 
         Minecraft.getInstance().getSoundManager().play(
                 SimpleSoundInstance.forUI(bonus ? SoundEvents.PLAYER_LEVELUP : SoundEvents.EXPERIENCE_ORB_PICKUP, 1.0F)
@@ -38,7 +47,7 @@ public class AbilityUnlockToastManager {
 
         if (current == null && !QUEUE.isEmpty()) {
             Entry next = QUEUE.poll();
-            current = new Entry(next.displayName(), next.bonus(), now);
+            current = new Entry(next.label(), next.bonus(), now);
         }
 
         return current;

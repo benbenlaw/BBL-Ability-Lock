@@ -204,7 +204,7 @@ public class AbilityProvider implements DataProvider {
             save(futures, cachedOutput,"passive_mob_damage",
                     AbilityBuilder.ability("Passive Mob Damage")
                             .type(AbilityTypes.ENTITY_HURT)
-                            .parent("crafting_stone_tools")
+                            .parent("item_interact_food")
                             .targets("minecraft:cow", "minecraft:sheep", "minecraft:chicken", "minecraft:pig", "minecraft:bat", "minecraft:bee", "minecraft:fox", "minecraft:wolf"));
 
             save(futures, cachedOutput,"passive_aquatic_mob_damage",
@@ -216,7 +216,7 @@ public class AbilityProvider implements DataProvider {
             save(futures, cachedOutput, "hostile_overworld_mob_damage",
                     AbilityBuilder.ability("Hostile Overworld Mob Damage")
                             .type(AbilityTypes.ENTITY_HURT)
-                            .parent("item_interact_food")
+                            .parent("crafting_wooden_tools")
                             .targetTag(Identifier.parse("minecraft:zombies"))
                             .targetTag(Identifier.parse("minecraft:skeletons"))
                             .targets("minecraft:creeper", "minecraft:enderman", "minecraft:spider", "minecraft:witch"));
@@ -396,7 +396,7 @@ public class AbilityProvider implements DataProvider {
 
             save(futures, cachedOutput, "item_interact_food",
                     AbilityBuilder.ability("Eating Food")
-                            .parent("passive_mob_damage")
+                            .parent("inventory")
                             .type(AbilityTypes.ITEM_INTERACT)
                             .targetTag(Tags.Items.FOODS.location()));
 
